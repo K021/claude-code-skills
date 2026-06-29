@@ -1,0 +1,87 @@
+{
+  "$schema_version": 1,
+  "updated_at": "ISO8601 — 갱신 시각",
+  "summary": "<2~4줄 현재상태 — compact 후 1순위 회복: 무엇을 만드는 중·지금 어디까지·바로 다음 한 걸음. recent_tasks[0]/active_tasks와 모순 없게>",
+  "next_steps": [
+    "<앞으로 할 일 — 순서대로 0~5개 한 줄. summary의 '다음 한 걸음' 이후 로드맵. deferred_work(사유 있는 보류)와 다름. 끝난 항목은 종료/GC마다 제거>"
+  ],
+  "project": {
+    "name": "<프로젝트명>",
+    "path": "<절대 경로>",
+    "purpose": "<한 줄 목적>",
+    "stack": ["<언어/프레임워크/타깃 OS 등>"],
+    "build_cmd": "<빌드 명령>",
+    "reinstall_cmd": "<재설치 명령 — 빌드 산출물이 앱이면>"
+  },
+  "code_map": {
+    "<rel-path-to-source-file>": "<역할 한 줄 — LLM이 의미 추출>"
+  },
+  "data_locations": {
+    "<설명>": "<path 또는 URL>"
+  },
+  "key_decisions": [
+    {
+      "topic": "<무엇에 관한 결정>",
+      "current": "<현재 채택된 방식 한 줄>",
+      "lesson": "<이 프로젝트 고유의 짧은 요약: 왜 이 결정·안 된 대안. 가로지르는 일반 원리/trade-off는 wiki/pages가 SoT — 여기엔 한 줄 포인터만(학습 파이프라인 라우팅)>",
+      "ref_report": "<관련 meta/reports/ 파일 경로>"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "do_not": "<하지 말아야 할 패턴>",
+      "instead": "<대신 해야 할 것>",
+      "reason": "<왜 — 사건/lesson 인용. 가능하면 commit hash 또는 report ref>"
+    }
+  ],
+  "glossary": {
+    "<도메인 용어>": "<정의 — 새 LLM이 어휘 빠르게 회복>"
+  },
+  "non_goals": [
+    "<의도적으로 안 하는 것 — 영구. deferred_work(나중에 보류)와 다름. anti_patterns와 중복 X>"
+  ],
+  "recurring_risks": [
+    {
+      "area": "<자주 깨지는 코드/기능>",
+      "trigger": "<어떤 변경이 위험한가>",
+      "verify_with": "<함께 검증할 신호 또는 명령>"
+    }
+  ],
+  "setup_first_time": [
+    "<새 머신/사용자 첫 셋업 단계 — 한 줄씩 (권한, 외부 도구 trust, 첫 빌드 등)>"
+  ],
+  "open_limitations": [
+    "<현재 알려진 한계 — 한 줄씩>"
+  ],
+  "deferred_work": [
+    {
+      "id": "<L-A 같은 식별자>",
+      "title": "<무엇을 보류했나>",
+      "reason": "<왜 보류했나>"
+    }
+  ],
+  "active_tasks": [],
+  "recent_tasks": [
+    {
+      "id": "<YYMMDD-N>",
+      "title": "<작업 제목>",
+      "ref_report": "<meta/reports/... 경로>",
+      "completed_at": "<YYYY-MM-DD>"
+    }
+  ],
+  "workflows": {
+    "build_install_run": "<명령>",
+    "log_analyze": "<있으면>",
+    "log_location": "<있으면>",
+    "archive_rotation": "/usr/bin/python3 meta/scripts/archive-old-tasks.py"
+  },
+  "user_env": {
+    "<관련 환경 정보>": "<값>"
+  },
+  "navigation_hints": [
+    "새 작업 시작: meta/specs/YYMMDD-N-제목/ + meta/plans/ + meta/reports/. 5단계 절차",
+    "작업 종료: 5단계 5-3에 따라 이 파일 갱신, recent_tasks > 10이면 archive 회전",
+    "사용자 보고 시 분석: <로그 분석 도구 또는 git log>"
+  ],
+  "archive_dir": "meta/structures/tasks-archive/"
+}
