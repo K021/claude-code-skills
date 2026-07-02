@@ -36,11 +36,10 @@ This is a Claude Code **skill**. To install it globally:
 
 ```bash
 git clone https://github.com/K021/claude-code-skills.git
-mkdir -p ~/.claude/skills/project-context
-cp -r claude-code-skills/skills/project-context/SKILL.md \
-      claude-code-skills/skills/project-context/templates \
-      ~/.claude/skills/project-context/
+cp -r claude-code-skills/skills/project-context ~/.claude/skills/project-context
 ```
+
+> **Sibling skill:** [`project-structure`](../project-structure/) maintains a *file map* (what files exist and what each does) — the structural counterpart to this skill's *work state*. They're designed to be used together.
 
 Then in any project, ask Claude Code to *"introduce the project-context system"* (or invoke the skill). It will:
 
@@ -60,6 +59,7 @@ From then on, every new session recovers context automatically, and every commit
 | `templates/project-context.json` | The schema, with every field documented inline. |
 | `templates/pre-commit-hook.sh` | Git hook that rejects commits which change code without updating context. |
 | `templates/archive-old-tasks.py` | Mechanical rotation of old `recent_tasks` into a dated archive (the *only* part that's a static script). |
+| `scripts/pc-review.js` | Background 2-phase review workflow (discovery → GC) that keeps the index accurate without spending the main session's context. |
 
 ## Note on cross-references
 
@@ -71,7 +71,7 @@ From then on, every new session recovers context automatically, and every commit
 
 AI 코딩 에이전트(Claude Code 등)는 세션이 끊기거나 컨텍스트가 압축되면 작업 기억을 잃고, 단순히 "다시 설명해야 하는" 정도가 아니라 **결과물의 질이 떨어집니다** — 이미 고친 버그를 되돌리고, 한 시간 전 결정과 모순되는 코드를 쓰고, 제약을 잊은 채 자신 있게 틀립니다.
 
-`claude-project-context`는 프로젝트 컨텍스트를 *전체 기록*이 아니라 스스로 관리되는 **핫 인덱스**(`meta/structures/project-context.json`)로 다뤄 이 문제를 해결합니다:
+`project-context`는 프로젝트 컨텍스트를 *전체 기록*이 아니라 스스로 관리되는 **핫 인덱스**(`meta/structures/project-context.json`)로 다뤄 이 문제를 해결합니다:
 
 1. **자동 회복** — 세션 시작 시 "무엇을 만드는 중·어디까지·다음 한 걸음"을 즉시 읽음
 2. **자동 갱신** — 작업 종료 시 결정·교훈·다음 단계를 에이전트가 직접 기록

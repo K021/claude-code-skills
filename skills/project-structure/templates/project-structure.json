@@ -1,0 +1,21 @@
+{
+  "$schema_version": 1,
+  "updated_at": "ISO8601 — 갱신 시각 (절대 날짜)",
+  "root": "<프로젝트 절대 경로>",
+  "directories": {
+    "<dir 상대경로 또는 (root)>": "<한 줄 역할 요약 또는 파일 수>"
+  },
+  "files": [
+    {
+      "path": "<프로젝트 루트 기준 상대경로>",
+      "purpose": "<이 파일이 '무엇이고 무엇을 하는가' 한 줄 — 실제로 read하고 정확히. 추측 금지>",
+      "type": "<language/type: javascript(esm)/python/json/markdown/shell ...>",
+      "key_entrypoints_or_exports": [
+        "<관련 시 — export 함수/CLI 플래그/리슨 포트/주요 심볼. 없으면 빈 배열>"
+      ],
+      "related": [
+        "<이 파일과 연결된 다른 파일 상대경로 — 참조/구현/문서화 관계>"
+      ]
+    }
+  ]
+}
