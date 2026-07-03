@@ -13,21 +13,32 @@ A collection of [Claude Code](https://claude.com/claude-code) skills I build and
 
 *(More skills will be added here over time.)*
 
-## Installing a skill
+## Install
 
-Each skill is a self-contained folder under `skills/`. To install one globally for Claude Code:
+This repo is a **Claude Code plugin marketplace** — install natively, no npm or external tools.
+
+**Recommended — plugin marketplace (inside Claude Code):**
+
+```text
+/plugin marketplace add K021/claude-code-skills
+/plugin install project-context@claude-code-skills
+/plugin install project-structure@claude-code-skills
+```
+
+That's it — everything happens inside Claude Code. Update later with `/plugin marketplace update claude-code-skills`.
+
+**Or — no marketplace, just copy the folder (works in any agent harness):**
 
 ```bash
 git clone https://github.com/K021/claude-code-skills.git
-# copy the skill folder you want into ~/.claude/skills/
 cp -r claude-code-skills/skills/project-context ~/.claude/skills/project-context
 ```
 
-Then invoke it from Claude Code (e.g. ask it to *"introduce the project-context system"*). See each skill's own `README.md` for details.
+Then invoke it (e.g. ask Claude Code to *"introduce the project-context system"*). See each skill's own `README.md` for details.
 
 ## What is a Claude Code skill?
 
-A skill is a folder with a `SKILL.md` (plus any templates/scripts) that Claude Code loads on demand to give the agent a specialized capability or operating procedure. Dropping a skill into `~/.claude/skills/<name>/` makes it available across all your projects.
+A skill is a folder with a `SKILL.md` (plus any templates/scripts) that Claude Code loads on demand to give the agent a specialized capability or operating procedure. This repo ships its skills as **plugins** (each has a `.claude-plugin/plugin.json`) listed in a marketplace (`.claude-plugin/marketplace.json`), so they install with `/plugin` and update cleanly — while still working as a plain folder copy if you prefer.
 
 ## License
 

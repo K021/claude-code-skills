@@ -1,0 +1,19 @@
+{
+  "name": "claude-code-skills",
+  "owner": {
+    "name": "Jooeon Kim"
+  },
+  "metadata": {
+    "description": "A collection of Claude Code skills by Jooeon Kim (K021). Sibling skills that let a fresh session recover what you're doing and what files exist."
+  },
+  "plugins": [
+    {
+      "name": "project-context",
+      "source": "./skills/project-context"
+    },
+    {
+      "name": "project-structure",
+      "source": "./skills/project-structure"
+    }
+  ]
+}

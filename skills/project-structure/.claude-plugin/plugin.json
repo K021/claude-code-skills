@@ -1,0 +1,11 @@
+{
+  "name": "project-structure",
+  "description": "Gives your AI coding agent a map of the files — a hot index of what files exist and what each does (project-structure.json + append-only history), recovered in a single read so a new session stops re-discovering the codebase by grep. Sibling to project-context.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jooeon Kim"
+  },
+  "homepage": "https://github.com/K021/claude-code-skills/tree/main/skills/project-structure",
+  "repository": "https://github.com/K021/claude-code-skills",
+  "license": "MIT"
+}

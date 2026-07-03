@@ -40,7 +40,14 @@ Noise (`.git`, `node_modules`, `dist`/`build`, `.venv`, caches, lockfiles, `.DS_
 
 ## Install
 
-This is a Claude Code **skill**. Install it globally:
+This is a Claude Code **skill**, shipped as a plugin. Install it natively — no npm required:
+
+```text
+/plugin marketplace add K021/claude-code-skills
+/plugin install project-structure@claude-code-skills
+```
+
+Or copy the folder directly (no marketplace, works in any harness):
 
 ```bash
 git clone https://github.com/K021/claude-code-skills.git

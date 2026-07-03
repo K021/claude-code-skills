@@ -32,7 +32,14 @@ A single JSON file — `meta/structures/project-context.json` — holds a one-li
 
 ## Install
 
-This is a Claude Code **skill**. To install it globally:
+This is a Claude Code **skill**, shipped as a plugin. Install it natively — no npm required:
+
+```text
+/plugin marketplace add K021/claude-code-skills
+/plugin install project-context@claude-code-skills
+```
+
+Or copy the folder directly (no marketplace, works in any harness):
 
 ```bash
 git clone https://github.com/K021/claude-code-skills.git

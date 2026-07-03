@@ -1,0 +1,11 @@
+{
+  "name": "project-context",
+  "description": "Gives your AI coding agent a memory of the work — a self-maintaining context index (project-context.json) that survives session resets and context-window compaction, so the agent recovers what it's building, where it is, and the next step instead of re-deriving it.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jooeon Kim"
+  },
+  "homepage": "https://github.com/K021/claude-code-skills/tree/main/skills/project-context",
+  "repository": "https://github.com/K021/claude-code-skills",
+  "license": "MIT"
+}
