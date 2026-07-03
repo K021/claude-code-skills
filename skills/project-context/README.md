@@ -63,7 +63,7 @@ Installing the plugin does two things: it makes the skill available, **and it in
 - On every session **start, resume, or after a compaction**, the hook reads your project's `meta/structures/project-context.json` and injects its `summary` + `next_steps` straight into the session — the agent restores where you left off without being told to and without reading files.
 - It's a silent no-op in projects that don't have that file, so it's safe to leave enabled everywhere.
 
-Then, **once per project**, run init (ask Claude Code to *"introduce the project-context system"*) to create the `project-context.json` the hook reads (plus `CLAUDE.md` and the pre-commit hook).
+Then, **once per project**, run init (ask Claude Code to *"introduce the project-context system"*) to create the `project-context.json` the hook reads (plus `CLAUDE.md`, the pre-commit hook, and — with your approval — the statusline sensor that powers the [pre-compaction refresh](#context-aware-refresh-optional-but-recommended)).
 
 So: **install = skill available + `SessionStart` hook active; init (once per project) = the context file exists for the hook to read.** From then on every session auto-recovers, and every commit keeps the context current. *(Verified end-to-end: a fresh session receives the injected summary at startup with zero file reads.)*
 
@@ -76,21 +76,16 @@ The hardest moment to survive is **auto-compaction**: when the context window fi
 1. **A statusline sensor** reads the exact `context_window.used_percentage` Claude Code hands the statusline and writes it to a per-session state file. (This is the only place Claude Code exposes precise context usage.)
 2. **A `Stop` / `PostToolBatch` hook** (`hooks/ctx-guard.py`) reads that value and, once usage crosses a threshold (default 75%), forces a turn instructing the agent to refresh `summary` + `next_steps` **now** — while the context still exists. It fires once per climb (hysteresis), and only in projects that use project-context.
 
-To enable it, point your statusline at the sensor (it chains your existing statusline, so you keep your current display):
+**The `Stop`/`PostToolBatch` hook ships with the plugin and installs automatically.** The one piece that can't ride along is the sensor — a plugin can't install a statusline (Claude Code only lets plugin settings set `agent`/`subagentStatusLine`, not the main `statusLine`). So **init sets it up for you**: when you run init (*"introduce the project-context system"*), it runs `templates/setup-statusline.sh` — with your approval, since it edits `settings.json` — which writes `~/.claude/ctx-sensor.sh` and wires your statusline to it, **preserving any existing statusline** (chained via `CTX_SENSOR_INNER`) and making a `.bak`. It's idempotent and shared with `project-structure`, so running it again (or from both skills) is a no-op. Tune the threshold with `CTXGUARD_THRESHOLD` (percent).
+
+Prefer to wire it by hand? Run `bash statusline/setup-statusline.sh` (or the copy under either skill's `templates/`), or set it directly:
 
 ```json
 // settings.json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "CTX_SENSOR_INNER='<your existing statusline command>' bash ~/.claude/ctx-sensor.sh"
-  }
-}
+{ "statusLine": { "type": "command", "command": "CTX_SENSOR_INNER='<your existing statusline command>' bash ~/.claude/ctx-sensor.sh" } }
 ```
 
-Copy `statusline/ctx-sensor.sh` (from this repo) to `~/.claude/ctx-sensor.sh` first. Tune the threshold with `CTXGUARD_THRESHOLD` (percent).
-
-> **Honest scope.** The statusline runs only in **interactive** Claude Code (not `-p` headless), so this refresh is an interactive-session feature. Without the sensor configured, the hook is a silent no-op and the rest of the skill (recovery, git-hook enforcement, PreCompact backup) still works. Requires `jq`.
+> **Honest scope.** The statusline runs only in **interactive** Claude Code (not `-p` headless), so this refresh is an interactive-session feature. Until the sensor is wired (init does it, or run the installer), the hook is a silent no-op and the rest of the skill (recovery, git-hook enforcement, PreCompact backup) still works. Requires `jq` + `python3`.
 
 ## Repository layout
 
@@ -106,7 +101,8 @@ Copy `statusline/ctx-sensor.sh` (from this repo) to `~/.claude/ctx-sensor.sh` fi
 | `hooks/session-start.py` | `SessionStart` hook — auto-injects `summary` + `next_steps` every session/resume/post-compaction (makes recovery automatic; silent no-op when the context file is absent). |
 | `hooks/ctx-guard.py` | `Stop` / `PostToolBatch` hook — forces a refresh before the window fills, reading context % from the statusline sensor (see above). |
 | `hooks/pre-compact-backup.py` | `PreCompact` hook — snapshots the context file to `.pre-compact-backups/` before compaction. Never blocks. |
-| `../../statusline/ctx-sensor.sh` | Statusline sensor that records context % for `ctx-guard.py` (repo root `statusline/`, installed to `~/.claude/`). |
+| `templates/setup-statusline.sh` | Idempotent installer that writes the statusline sensor to `~/.claude/` and wires `settings.json` (preserving any existing statusline). Run by init with your approval; also runnable by hand. |
+| `../../statusline/ctx-sensor.sh` · `../../statusline/setup-statusline.sh` | The standalone sensor + installer at repo root (`statusline/`), for manual setup. |
 
 ## Note on cross-references
 

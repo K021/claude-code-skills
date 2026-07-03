@@ -80,6 +80,7 @@ description: 프로젝트 파일 구조·변경 이력 메타 시스템 (project
 4. `meta/structures/project-structure-history.jsonl` 생성 — baseline. 판단에 따라 파일당 `added (baseline snapshot)` 한 줄씩, 또는 단일 baseline 엔트리.
 5. `updated_at`·`root` 확정, JSON 유효성 검증.
 6. (선택) pre-commit 게이트: project-context의 `pre-commit-hook.sh`에 이미 "코드 변경 시 context.json 갱신 강제"가 있다. 구조 파일도 강제하려면 그 훅에 `project-structure.json` 조건을 OR로 추가하거나 `templates/pre-commit-hook.sh`(구조 전용) 사용. 게이트 철학은 project-context와 동일 — LLM이 5단계 5-3 갱신을 빠뜨리는 것을 reject로 차단.
+7. **(권장) statusline 센서 설정** — "압축 전 자동 갱신"(ctx-guard 훅 #2)을 활성화한다. `~/.claude/settings.json`을 수정하므로 **사용자 승인 후** `bash templates/setup-statusline.sh` 실행(멱등·기존 statusline은 `CTX_SENSOR_INNER`로 보존·`.bak` 생성). 훅은 플러그인에 담기지만 statusline은 못 담기므로(Claude Code 제약) init이 대신 깐다. project-context와 **공유** — 이미 깔렸으면 no-op. `jq`·`python3` 필요.
 
 ## 스키마 — `project-structure.json`
 

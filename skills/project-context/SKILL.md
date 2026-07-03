@@ -75,7 +75,8 @@ description: 프로젝트별 컨텍스트 메타 시스템 (project-context.json
 2. `<project>/meta/structures/project-context.json` 생성 — `templates/project-context.json` 스키마 따름. 현재 프로젝트 상태로 채움 (LLM이 코드 read하고 작성)
 3. `<project>/meta/scripts/archive-old-tasks.py` 복사 — `templates/archive-old-tasks.py` 그대로
 4. **`<project>/.git/hooks/pre-commit` 설치 (의무)** — `templates/pre-commit-hook.sh` 복사 + `chmod +x`
-5. 동작 검증: `archive-old-tasks.py --dry-run`, `pre-commit` 직접 호출 후 syntax check
+5. **(권장) statusline 센서 설정** — "압축 전 자동 갱신"(ctx-guard 훅 #2)을 활성화한다. `~/.claude/settings.json`을 수정하므로 **사용자 승인 후** `bash templates/setup-statusline.sh` 실행(멱등·기존 statusline은 `CTX_SENSOR_INNER`로 보존·`.bak` 생성). 훅은 플러그인에 담기지만 statusline은 못 담기므로(Claude Code 제약) init이 대신 깐다. project-structure와 **공유**하므로 이미 깔렸으면 no-op. `jq`·`python3` 필요.
+6. 동작 검증: `archive-old-tasks.py --dry-run`, `pre-commit` 직접 호출 후 syntax check
 
 ## 스키마 — `meta/structures/project-context.json`
 

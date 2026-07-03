@@ -76,9 +76,9 @@ Then, **once per project**, run init (ask Claude Code to *"introduce the project
 
 ## Context-aware refresh (optional but recommended)
 
-Like [`project-context`](../project-context/#context-aware-refresh-optional-but-recommended), this skill can refresh the file map **before auto-compaction** discards it. It reuses the **same statusline sensor** (`statusline/ctx-sensor.sh` — set it up once for both skills): the sensor records the exact context-usage %, and a `Stop`/`PostToolBatch` hook (`hooks/ctx-guard.mjs`) reads it and, once usage crosses a threshold (default 75%), forces a turn to rescan and update `project-structure.json` + append to the history log while the context still exists.
+Like [`project-context`](../project-context/#context-aware-refresh-optional-but-recommended), this skill can refresh the file map **before auto-compaction** discards it. The `Stop`/`PostToolBatch` hook (`hooks/ctx-guard.mjs`) ships with the plugin; it reads the context-usage % from the **same shared statusline sensor** and, once usage crosses a threshold (default 75%), forces a turn to rescan and update `project-structure.json` + append to the history log while the context still exists.
 
-It uses a distinct marker (`.nudged-ps`), so when both sibling skills are installed they nudge independently without colliding. Same honest scope: interactive-session only (the statusline doesn't run in `-p` headless), silent no-op otherwise, requires `jq` for the sensor.
+The sensor can't ship in a plugin (Claude Code won't let a plugin set the main statusline), so **init installs it for you** — running init (*"introduce the project-structure system"*) runs `templates/setup-statusline.sh` with your approval (idempotent, shared with `project-context`, preserves any existing statusline). It uses a distinct marker (`.nudged-ps`), so when both sibling skills are installed they nudge independently without colliding. Interactive-session only (the statusline doesn't run in `-p` headless); silent no-op until wired; requires `jq` + `python3`.
 
 ## Repository layout
 
