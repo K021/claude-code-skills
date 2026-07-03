@@ -52,6 +52,18 @@ description: 프로젝트 파일 구조·변경 이력 메타 시스템 (project
 
 ## 전체 재스캔 (GC / 정합) 절차 — stale 의심·사용자 요청 시
 
+### 실행: 백그라운드 위임 (sync → discovery → GC) — 기본
+
+검토·정리는 **메인이 인라인으로 돌리지 않는다.** 백그라운드 워크플로 `scripts/ps-review.js`에 위임한다(`Workflow({ scriptPath: "~/.claude/skills/project-structure/scripts/ps-review.js", args: { projectRoot: "<프로젝트 절대경로>" } })`). project-context의 `pc-review.js`와 자매.
+
+- **왜 백그라운드인가**: purpose 검증은 *파일 다수를 Read*하는 작업이라 인라인이면 메인 컨텍스트를 잡아먹고(검토 chatter) abort를 유발한다. 워커가 파일을 *디스크에서 직접 Edit*하므로 메인엔 짧은 요약(`{sync, discovery, gc, finalize}`)만 돌아온다.
+- **3-phase·각 1회 수렴·바깥 반복 없음**: ① **Sync**(`scan-structure.mjs --write`로 파일 목록 기계적 동기화 — 새 파일 purpose:"", 삭제 파일 제거) → ② **Discovery**(빈/빈약한 purpose·entrypoint·related·directories를 파일 Read해 보강, loop-until-dry) → ③ **GC**(유령파일·stale purpose·없어진 디렉토리·변동성 값 prune/correct). 바깥 루프 금지(진동 위험).
+- **🚫 history 불가침**: `project-structure-history.jsonl`은 append-only 원장이라 워크플로가 **절대 재작성/prune하지 않는다** — 스냅샷 json만 정리. (pc-review와의 결정적 차이.)
+- **불변식**(sequential-review 참조): 라운드마다 *새 독립* `agentType:'general-purpose'` · 현재 파일 *재독* · purpose는 파일 Read로 *접지* · 발견은 파일에 *직접 Edit*.
+- **compact 직전 트리거**: 백그라운드라 *이번* 압축 전 완료를 보장 못 해도 파일은 유효한 증분본이고, 워커가 압축 후 끝내 정리해 **다음 회복은 정리본으로**(자가 치유). 막판 인라인으로 abort 내지 마라.
+
+> 아래 단계는 **각 phase의 점검 항목 명세**(Sync=1, Discovery=2, GC=3·4)이자 워크플로를 못 쓸 때의 **인라인 폴백 절차**다.
+
 1. `scan-structure.mjs --write` 로 목록을 현재 디스크와 동기화(사라진 파일 자동 제거·새 파일 등장).
 2. 남아있는 각 `purpose`가 *지금도 맞는가*를 접지: 의심되는 파일은 Read해서 역할이 바뀌었으면 정정. 라인번호 같은 변동에 약한 값은 넣지 말고 *의미*로 기술.
 3. `directories`가 실제 배치와 맞는가. 없어진 디렉토리 제거.

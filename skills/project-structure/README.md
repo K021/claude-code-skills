@@ -38,6 +38,8 @@ Noise (`.git`, `node_modules`, `dist`/`build`, `.venv`, caches, lockfiles, `.DS_
 
 `scan-structure.mjs` is git-aware (`git ls-files` + noise exclusion) and does the mechanical work — list, type, diff, and *merge* (preserving existing `purpose` values, adding new files as `purpose:""`, dropping deleted ones). But it never writes `purpose`, because a filename can't tell you a file's role (a static-generated purpose is a source of stale, wrong descriptions). The agent reads each new or changed file and writes an accurate one-line `purpose`. The script handles *list · type · diff · merge*; the LLM handles *what it is and what it does*.
 
+**Self-review in the background.** Keeping `purpose` accurate means re-reading files — which would eat the main session's context if done inline. So, like its sibling [`project-context`](../project-context/), this skill delegates that to a background workflow (`scripts/ps-review.js`): **sync** (run the scanner) → **discovery** (fill empty/weak `purpose`, entry points, relations by reading files) → **GC** (prune ghost files, correct stale purposes, drop gone directories). The history log is an append-only ledger, so the workflow **never** rewrites it — only the snapshot is cleaned.
+
 ## Install
 
 This is a Claude Code **skill**, shipped as a plugin. Install it natively — no npm required:
@@ -86,6 +88,7 @@ It uses a distinct marker (`.nudged-ps`), so when both sibling skills are instal
 | `templates/scan-structure.mjs` | Git-aware scanner: lists files, types them, diffs vs the snapshot, merges (preserving `purpose`). The *only* static part. |
 | `templates/project-structure.json` | Snapshot schema, documented inline. |
 | `templates/project-structure-history.jsonl` | Append-only change-log format. |
+| `scripts/ps-review.js` | Background review workflow (sync → discovery → GC) that keeps the file map accurate without spending the main session's context. Never rewrites the append-only history. |
 | `hooks/hooks.json` | Wires the four hook events below. |
 | `hooks/session-start.mjs` | `SessionStart` hook — points the agent at the file map every session/resume/post-compaction (silent no-op when the snapshot is absent). |
 | `hooks/ctx-guard.mjs` | `Stop` / `PostToolBatch` hook — forces a file-map refresh before the window fills, reading context % from the shared statusline sensor. |
