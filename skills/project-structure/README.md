@@ -72,6 +72,12 @@ Then, **once per project**, run init (ask Claude Code to *"introduce the project
 
 > **Manual folder-copy installs** don't auto-register plugin hooks the way a marketplace `/plugin install` does — install via `/plugin` for automatic recovery, or replicate `hooks/hooks.json` in your own `settings.json`.
 
+## Context-aware refresh (optional but recommended)
+
+Like [`project-context`](../project-context/#context-aware-refresh-optional-but-recommended), this skill can refresh the file map **before auto-compaction** discards it. It reuses the **same statusline sensor** (`statusline/ctx-sensor.sh` — set it up once for both skills): the sensor records the exact context-usage %, and a `Stop`/`PostToolBatch` hook (`hooks/ctx-guard.mjs`) reads it and, once usage crosses a threshold (default 75%), forces a turn to rescan and update `project-structure.json` + append to the history log while the context still exists.
+
+It uses a distinct marker (`.nudged-ps`), so when both sibling skills are installed they nudge independently without colliding. Same honest scope: interactive-session only (the statusline doesn't run in `-p` headless), silent no-op otherwise, requires `jq` for the sensor.
+
 ## Repository layout
 
 | Path | What it is |
@@ -80,7 +86,10 @@ Then, **once per project**, run init (ask Claude Code to *"introduce the project
 | `templates/scan-structure.mjs` | Git-aware scanner: lists files, types them, diffs vs the snapshot, merges (preserving `purpose`). The *only* static part. |
 | `templates/project-structure.json` | Snapshot schema, documented inline. |
 | `templates/project-structure-history.jsonl` | Append-only change-log format. |
-| `hooks/hooks.json` + `hooks/session-start.mjs` | The `SessionStart` hook that points the agent at the file map every session/resume/post-compaction (silent no-op when the snapshot is absent). |
+| `hooks/hooks.json` | Wires the four hook events below. |
+| `hooks/session-start.mjs` | `SessionStart` hook — points the agent at the file map every session/resume/post-compaction (silent no-op when the snapshot is absent). |
+| `hooks/ctx-guard.mjs` | `Stop` / `PostToolBatch` hook — forces a file-map refresh before the window fills, reading context % from the shared statusline sensor. |
+| `hooks/pre-compact-backup.mjs` | `PreCompact` hook — snapshots `project-structure.json` to `.pre-compact-backups/` before compaction. Never blocks. |
 
 ## Note on cross-references
 
