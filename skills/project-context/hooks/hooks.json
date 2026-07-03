@@ -1,5 +1,5 @@
 {
-  "description": "Auto-recover project-context at session start / resume / after compaction",
+  "description": "project-context: auto-recover at session start, refresh before the window fills, and back up before compaction",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,40 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolBatch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/ctx-guard.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/ctx-guard.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "auto|manual",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact-backup.py\"",
             "timeout": 10
           }
         ]

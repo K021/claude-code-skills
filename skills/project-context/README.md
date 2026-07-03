@@ -21,12 +21,13 @@ When an agent like Claude Code ends a session or compacts its context window, it
 
 ## How it works
 
-A single JSON file — `meta/structures/project-context.json` — holds a one-line-per-item index of the project (summary, next steps, code map, key decisions, anti-patterns, open limitations, recent tasks…). Around it sit four moving parts:
+A single JSON file — `meta/structures/project-context.json` — holds a one-line-per-item index of the project (summary, next steps, code map, key decisions, anti-patterns, open limitations, recent tasks…). Around it sit five moving parts:
 
 1. **Auto-recover** — a bundled `SessionStart` hook injects the index's `summary` + `next_steps` into every new, resumed, or post-compaction session, so the agent restores "what we're building · where we are · the next single step" before it does anything — no file read, no reminder needed. This closes the post-amnesia quality gap.
 2. **Auto-update** — on session end, the agent itself records new decisions, lessons, and next steps. So the *next* session already knows.
-3. **Self-GC** — a periodic prune pass removes stale and duplicate entries (triggered before compaction, or when the file grows past ~200 lines / 25 KB), keeping the index light *and accurate*. Stale context is its own kind of performance hit.
-4. **Enforced by a git hook** — a `pre-commit` hook rejects the commit if you changed code but forgot to update the context file. The discipline isn't optional.
+3. **Refresh before the window fills** — a `Stop`/`PostToolBatch` hook watches the context-usage % (fed by the statusline sensor) and, once it crosses a threshold, forces the agent to update the index *before* auto-compaction discards the live context — so the save happens while the memory is still there, not after it's gone. (See [Context-aware refresh](#context-aware-refresh-optional-but-recommended).)
+4. **Self-GC** — a periodic prune pass removes stale and duplicate entries (triggered before compaction, or when the file grows past ~200 lines / 25 KB), keeping the index light *and accurate*. Stale context is its own kind of performance hit.
+5. **Enforced by a git hook** — a `pre-commit` hook rejects the commit if you changed code but forgot to update the context file. The discipline isn't optional. A `PreCompact` hook also snapshots the file to `.pre-compact-backups/` as a last-resort safety net.
 
 **The key design choice:** don't automate the updates with a static script. The *meaning* — "why we decided this," "what we learned here" — can only be extracted by the LLM. A static script only does mechanical work (like rotating old tasks into an archive). The agent maintains its own memory.
 
@@ -68,6 +69,29 @@ So: **install = skill available + `SessionStart` hook active; init (once per pro
 
 > **Manual folder-copy installs** don't auto-register the plugin's hooks the way a marketplace `/plugin install` does. For automatic session-start recovery, install via `/plugin` — or replicate the `SessionStart` hook (`hooks/hooks.json`) in your own `settings.json`.
 
+## Context-aware refresh (optional but recommended)
+
+The hardest moment to survive is **auto-compaction**: when the context window fills, Claude Code compacts (summarizes-and-discards) the live conversation. If the index wasn't updated first, the freshest state is lost. Hooks can't run an LLM update themselves, and they don't receive the context-usage number — so this skill bridges it in two pieces:
+
+1. **A statusline sensor** reads the exact `context_window.used_percentage` Claude Code hands the statusline and writes it to a per-session state file. (This is the only place Claude Code exposes precise context usage.)
+2. **A `Stop` / `PostToolBatch` hook** (`hooks/ctx-guard.py`) reads that value and, once usage crosses a threshold (default 75%), forces a turn instructing the agent to refresh `summary` + `next_steps` **now** — while the context still exists. It fires once per climb (hysteresis), and only in projects that use project-context.
+
+To enable it, point your statusline at the sensor (it chains your existing statusline, so you keep your current display):
+
+```json
+// settings.json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "CTX_SENSOR_INNER='<your existing statusline command>' bash ~/.claude/ctx-sensor.sh"
+  }
+}
+```
+
+Copy `statusline/ctx-sensor.sh` (from this repo) to `~/.claude/ctx-sensor.sh` first. Tune the threshold with `CTXGUARD_THRESHOLD` (percent).
+
+> **Honest scope.** The statusline runs only in **interactive** Claude Code (not `-p` headless), so this refresh is an interactive-session feature. Without the sensor configured, the hook is a silent no-op and the rest of the skill (recovery, git-hook enforcement, PreCompact backup) still works. Requires `jq`.
+
 ## Repository layout
 
 | Path | What it is |
@@ -78,7 +102,11 @@ So: **install = skill available + `SessionStart` hook active; init (once per pro
 | `templates/pre-commit-hook.sh` | Git hook that rejects commits which change code without updating context. |
 | `templates/archive-old-tasks.py` | Mechanical rotation of old `recent_tasks` into a dated archive (the *only* part that's a static script). |
 | `scripts/pc-review.js` | Background 2-phase review workflow (discovery → GC) that keeps the index accurate without spending the main session's context. |
-| `hooks/hooks.json` + `hooks/session-start.py` | The `SessionStart` hook that auto-injects `summary` + `next_steps` into every session/resume/post-compaction. This is what makes recovery automatic (a silent no-op when the context file is absent). |
+| `hooks/hooks.json` | Wires all four hook events below. |
+| `hooks/session-start.py` | `SessionStart` hook — auto-injects `summary` + `next_steps` every session/resume/post-compaction (makes recovery automatic; silent no-op when the context file is absent). |
+| `hooks/ctx-guard.py` | `Stop` / `PostToolBatch` hook — forces a refresh before the window fills, reading context % from the statusline sensor (see above). |
+| `hooks/pre-compact-backup.py` | `PreCompact` hook — snapshots the context file to `.pre-compact-backups/` before compaction. Never blocks. |
+| `../../statusline/ctx-sensor.sh` | Statusline sensor that records context % for `ctx-guard.py` (repo root `statusline/`, installed to `~/.claude/`). |
 
 ## Note on cross-references
 
