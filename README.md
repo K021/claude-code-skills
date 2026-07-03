@@ -27,6 +27,8 @@ This repo is a **Claude Code plugin marketplace** — install natively, no npm o
 
 That's it — everything happens inside Claude Code. Update later with `/plugin marketplace update claude-code-skills`.
 
+> **What makes recovery automatic.** Each skill ships a **`SessionStart` hook** that injects your project's saved context/file-map into every new, resumed, or post-compaction session — that hook is the real trigger (a `CLAUDE.md` instruction alone is only a soft nudge). Then run a **one-time per-project init** — ask Claude Code to *"introduce the project-context system"* — to create the files the hook reads. So: install = skill + hook active; init = the per-project files exist. See each skill's **"How activation works"** section.
+
 **Or — no marketplace, just copy the folder (works in any agent harness):**
 
 ```bash

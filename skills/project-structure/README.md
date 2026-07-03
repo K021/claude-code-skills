@@ -61,7 +61,16 @@ Then in any project, ask Claude Code to *"introduce the project-structure system
 3. **read each file and fill in its `purpose`** (the part only the LLM can do),
 4. create the `project-structure-history.jsonl` baseline.
 
-From then on, every new session recovers the file map in one read instead of re-grepping for it.
+## How activation works (what actually makes it automatic)
+
+Installing the plugin makes the skill available **and installs a `SessionStart` hook** — that hook is what makes recovery automatic, not a `CLAUDE.md` line (which is only a soft nudge).
+
+- On every session **start, resume, or after a compaction**, the hook checks for your project's `meta/structures/project-structure.json` and injects a lightweight pointer (file/dir counts + path) so the agent knows to read the file map in one shot instead of re-grepping. (It injects a pointer, not the whole map, to keep session start fast.)
+- Silent no-op when the file is absent, so it's safe to leave enabled everywhere.
+
+Then, **once per project**, run init (ask Claude Code to *"introduce the project-structure system"*) to create the snapshot the hook points at. Best used **alongside [`project-context`](../project-context/)** so both file map and work state recover together.
+
+> **Manual folder-copy installs** don't auto-register plugin hooks the way a marketplace `/plugin install` does — install via `/plugin` for automatic recovery, or replicate `hooks/hooks.json` in your own `settings.json`.
 
 ## Repository layout
 
@@ -71,6 +80,7 @@ From then on, every new session recovers the file map in one read instead of re-
 | `templates/scan-structure.mjs` | Git-aware scanner: lists files, types them, diffs vs the snapshot, merges (preserving `purpose`). The *only* static part. |
 | `templates/project-structure.json` | Snapshot schema, documented inline. |
 | `templates/project-structure-history.jsonl` | Append-only change-log format. |
+| `hooks/hooks.json` + `hooks/session-start.mjs` | The `SessionStart` hook that points the agent at the file map every session/resume/post-compaction (silent no-op when the snapshot is absent). |
 
 ## Note on cross-references
 
