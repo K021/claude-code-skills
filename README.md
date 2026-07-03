@@ -7,7 +7,7 @@ A collection of [Claude Code](https://claude.com/claude-code) skills I build and
 | Skill | What it does |
 |-------|--------------|
 | [**project-context**](./skills/project-context/) | Gives your AI coding agent a **memory of the work**. A self-maintaining context index that survives session resets and context-window compaction, so the agent doesn't get "dumber" — reverting fixed bugs, contradicting past decisions — every time it forgets. Auto-recover · auto-update · self-GC · enforced by a git pre-commit hook. |
-| [**project-structure**](./skills/project-structure/) | Gives your agent a **map of the files**. A hot index of what files exist and what each one does, recovered in a single read — so a new session stops re-discovering your codebase by `grep`. Sibling to `project-context`: that one tracks *what you're doing*, this one tracks *what exists and how it changed*. |
+| [**project-structure**](./skills/project-structure/) | Gives your agent a **map of the files**. A hot index of what files exist and what each one does, recovered in a single read — so a new session stops re-discovering your codebase by `grep`. Self-reviewing in the background (sync → discovery → GC) with an append-only change history. Sibling to `project-context`: that one tracks *what you're doing*, this one tracks *what exists and how it changed*. |
 
 **The two are designed as a pair.** On recovery, `project-context` answers *"where am I and what did we decide"* while `project-structure` answers *"what files are here and what does each do"* — together they let a fresh session pick up where the last one left off instead of re-deriving everything.
 
