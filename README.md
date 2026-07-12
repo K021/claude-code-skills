@@ -1,6 +1,6 @@
 # agent-harness
 
-My **[Claude Code](https://claude.com/claude-code) harness** — the skills (and, over time, agents) I build and use to customize how the coding agent works. Skills live in `skills/<name>/` and map 1:1 to their install target, `~/.claude/skills/<name>/`; agents will live under `agents/<name>/`.
+My **[Claude Code](https://claude.com/claude-code) harness** — the skills and agents I build and use to customize how the coding agent works. Skills live under `skills/<name>/`, agents (bundled as plugins) under `agents/<name>/`; each maps to its install target under `~/.claude/`.
 
 ## Skills
 
@@ -15,7 +15,9 @@ My **[Claude Code](https://claude.com/claude-code) harness** — the skills (and
 
 ## Agents
 
-*(None yet — shareable subagent definitions will live under `agents/<name>/`.)*
+| Plugin | What it does |
+|--------|--------------|
+| [**model-routing**](./agents/model-routing/) | **Routes sub-agent (leaf) tasks to the right model by task type.** Nine `leaf-*` agents that bake in the right tier — Sonnet for execution work, Opus for emergent/diagnosis, Fable for the adversarial gate & discovery — plus the invariants each task type needs, so a delegation stops silently defaulting to your priciest model. They **auto-delegate by description**; `/model-routing:apply` adds an explicit routing gate to your `CLAUDE.md`. The routing is measured, not guessed — real tasks replayed across three tiers and graded three ways ([the report](./agents/model-routing/report/)). |
 
 ## Install
 
@@ -27,6 +29,7 @@ This repo is a **Claude Code plugin marketplace** — install natively, no npm o
 /plugin marketplace add K021/agent-harness
 /plugin install project-context@agent-harness
 /plugin install project-structure@agent-harness
+/plugin install model-routing@agent-harness
 ```
 
 That's it — everything happens inside Claude Code. Update later with `/plugin marketplace update agent-harness`.
