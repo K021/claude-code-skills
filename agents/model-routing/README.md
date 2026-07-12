@@ -12,7 +12,7 @@ The routing isn't a guess — it comes from replaying real tasks from a real app
 |---|---|---|---|
 | Review with a given checklist / lenses | `leaf-checklist-review` | low (sonnet) | directed review ties the top model's recall |
 | Repair/refactor with method **and** oracle given | `leaf-oracle-repair` | low (sonnet) | full marks, zero merge-blockers |
-| Planning-document draft | `leaf-plan-draft` | low (sonnet) | zero critical defects |
+| Scoped plan (known goal) | `leaf-plan-draft` | low (sonnet) | zero critical defects |
 | Coverage research (defined scope) | `leaf-coverage-research` | low (sonnet) | tied best coverage |
 | Design mockups (human picks) | `leaf-design-mockup` | low (sonnet) | no model direction — raise candidate count instead |
 | Emergent implementation (design is yours) | `leaf-emergent-impl` | mid (opus) | + **mandatory** `leaf-adversarial-gate` before merge |

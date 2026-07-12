@@ -114,7 +114,7 @@ td.why{min-width:280px}
 <tr><th>leaf type</th><th>recommended model</th><th>required condition</th><th>key evidence</th></tr>
 <tr><td><a href="#c1" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">① Perspective-specified review</a></td><td><span class="m s">sonnet</span></td><td>standard (gold / checklist) specified</td><td>recall 4/4 tied · 0 critical defects</td></tr>
 <tr><td><a href="#c2" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">② Method-specified repair / refactor</a></td><td><span class="m s">sonnet</span></td><td>oracle (test / comparison) enclosed</td><td>perfect oracle score + 0 defects (opus had 2·2 minor)</td></tr>
-<tr><td><a href="#c3" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">③ Plan document draft</a></td><td><span class="m s">sonnet</span></td><td>review intensity is set by blast radius — skip / opus independent review / fable deep review</td><td>critical defects: sonnet 0 vs opus 1</td></tr>
+<tr><td><a href="#c3" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">③ Scoped plan</a></td><td><span class="m s">sonnet</span></td><td>review intensity is set by blast radius — skip / opus independent review / fable deep review</td><td>critical defects: sonnet 0 vs opus 1</td></tr>
 <tr><td><a href="#c4" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">④ Coverage-type research</a></td><td><span class="m s">sonnet</span></td><td>comparison standard specified</td><td>coverage 47/49, the best · 0 critical defects</td></tr>
 <tr><td><a href="#c5" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑤ Design mockup</a></td><td><span class="m s">sonnet</span></td><td><b>specify automated capture-and-review of the rendered screen</b></td><td>best in human blind once · 0 critical defects</td></tr>
 <tr><td><a href="#c6" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑥ Emergent implementation</a></td><td><span class="m o">opus</span> or <span class="m f">fable</span></td><td><b>independent adversarial review before merge is mandatory</b></td><td>clean: fable 2/2 · opus 1/2 · sonnet 0/2 — the gate is mandatory regardless of model</td></tr>
@@ -260,8 +260,8 @@ td.why{min-width:280px}
 
 <div class="card" id="c3">
 <div class="ax">C JUDGMENT · DECISION · MEASUREMENT: PILOT 62</div>
-<h3>③ Plan document draft <span class="m s">sonnet</span> <span class="cond">+ review intensity is set by blast radius — see the decision procedure in the body</span></h3>
-<div class="qbox"><span class="q">Discriminating criterion:</span> Is the deliverable a plan document rather than code, and is the body of the work the research and the organizing of trade-offs?</div>
+<h3>③ Scoped plan <span class="m s">sonnet</span> <span class="cond">+ review intensity is set by blast radius — see the decision procedure in the body</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is the deliverable a plan document rather than code, and is the body of the work the research and the organizing of trade-offs? (A "scoped" plan — a known goal — belongs here on sonnet; an "exploratory" plan, where you must first find the goal, needs a stronger model.)</div>
 
 <dl class="kv" style="margin:10px 0">
 <dt>When to use this type</dt>
@@ -276,8 +276,8 @@ td.why{min-width:280px}
 <dd><ul style="margin:4px 0">
 <li><b>Draft writing — who writes it</b>
 <ul style="margin:2px 0">
-<li>Research/organizing type — a plan that organizes steps, risks, and completion criteria based on the current state → <span class="m s">sonnet</span> — <b>the same even if the blast radius is large</b>. The basis is measurement: the measured task below was exactly a large-blast-radius plan, and sonnet did not fall behind.</li>
-<li>Design-invention type — a plan whose body is devising a new architecture or algorithm → <span class="m o">opus or higher</span>. This is outside this card's measurement, a conservative choice inferred from the evidence of <a href="#c6">⑥ Emergent implementation</a>.</li>
+<li><b>Scoped plan</b> (a known goal) — organizes steps, risks, and completion criteria based on the current state → <span class="m s">sonnet</span> — <b>the same even if the blast radius is large</b>. The basis is measurement: the measured task below was exactly a large-blast-radius plan, and sonnet did not fall behind.</li>
+<li><b>Exploratory plan</b> (you must first find the goal) — where the work is searching broadly for what to do or devising a new design → <span class="m o">opus or higher</span>. This is outside this card's measurement, a conservative choice inferred from the evidence of <a href="#c6">⑥ Emergent implementation</a>.</li>
 </ul></li>
 <li><b>Review — who verifies it</b>
 <ul style="margin:2px 0">
@@ -334,7 +334,7 @@ The reviewer basis is one measurement: the adjudicator that caught this measurem
 </table></div>
 
 <dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
-<li><b>A plan-document draft is fine with sonnet — more precisely, "sonnet does not fall behind."</b> The side that produced a critical defect was actually opus. That said, since these are results of 2 runs each, we can't go so far as "sonnet is safer."</li>
+<li><b>A scoped plan is fine with sonnet — more precisely, "sonnet does not fall behind."</b> The side that produced a critical defect was actually opus. That said, since these are results of 2 runs each, we can't go so far as "sonnet is safer."</li>
 <li><b>The best single output was also opus, and the only critical defect was also opus.</b> The pattern that the same model's run-to-run variance exceeds the between-model gap repeated in planning too.</li>
 <li><b>The safeguard for a plan is not a model upgrade but independent review.</b> The fact that the side producing a critical defect was the higher model backs this up — who does which review is in the decision table above.</li>
 </ul></dd></dl>

@@ -20,7 +20,7 @@ Do this:
    > When delegating a task to a sub-agent, route by type (measured on a real app build — see the model-routing plugin).
 
    1. Delegate via the `leaf-*` agents (model + rules baked in; a bare general-purpose delegation silently runs on your session model = your priciest tier). First match wins (if emergent + diagnosis blur, pick the more conservative one):
-      - checklist review → leaf-checklist-review · method+oracle repair → leaf-oracle-repair · plan draft → leaf-plan-draft · coverage research → leaf-coverage-research · design mockup → leaf-design-mockup  (low tier; supply the checklist / oracle / scope / render-capture instruction — if missing, the agent escalates)
+      - checklist review → leaf-checklist-review · method+oracle repair → leaf-oracle-repair · scoped plan → leaf-plan-draft · coverage research → leaf-coverage-research · design mockup → leaf-design-mockup  (low tier; supply the checklist / oracle / scope / render-capture instruction — if missing, the agent escalates)
       - emergent implementation → leaf-emergent-impl · diagnose + repair → leaf-diagnose-repair  (mid tier + mandatory leaf-adversarial-gate before merge)
       - discovery research → leaf-discovery-research · adversarial gate → leaf-adversarial-gate  (TOP tier — don't cheap out)
    2. Never: split strategy (top model plans the search) from execution (cheap model runs it) — discovery dies. Never use "the executor's own tests pass" as a completion criterion — the check must come from outside the executor.

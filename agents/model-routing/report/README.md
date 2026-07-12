@@ -23,7 +23,7 @@ Which model should you hand a delegated (leaf) task to, so you save cost without
 |---|---|---|---|
 | 1 | Review with a given checklist | Sonnet | the checklist |
 | 2 | Repair/refactor, method + oracle given | Sonnet | the oracle |
-| 3 | Planning-document draft | Sonnet | (review strength scales with blast radius) |
+| 3 | Scoped plan (known goal) | Sonnet | (review strength scales with blast radius) |
 | 4 | Coverage research (defined scope) | Sonnet | the baseline to compare against |
 | 5 | Design mockups | Sonnet | "self-review via headless render capture" |
 | 6 | Emergent implementation | Opus (Fable if top quality) | mandatory pre-merge adversarial gate |
@@ -38,7 +38,7 @@ The dividing line: **when the criterion for "done" comes from outside the execut
 
 1. **Checklist review → Sonnet.** All 4 runs caught the planted merge-blocker; panel-noted flaws were a tie (Opus 0 and 3 vs Sonnet 1 and 2 — the cleanest and messiest reports both came from Opus, i.e. run variance > model gap). Directed review is an execution problem once the lenses are fixed.
 2. **Method+oracle repair → Sonnet.** All 4 runs hit the oracle (byte-identical output on 3 documents + no crash on the deep one). Sonnet's panel flaws were 0; Opus's 4 flaws were all report-vs-artifact mismatches, not code.
-3. **Plan draft → Sonnet.** Graded against 4 pitfalls the plan should have foreseen (recovered from what the real implementation later hit). Sonnet had zero critical defects; the one critical defect came from Opus. The safety net for plans is independent review, not a bigger model.
+3. **Scoped plan (known goal) → Sonnet.** Graded against 4 pitfalls the plan should have foreseen (recovered from what the real implementation later hit). Sonnet had zero critical defects; the one critical defect came from Opus. The safety net for plans is independent review, not a bigger model. (An *exploratory* plan — where you must first find the goal — is opus+ territory.)
 4. **Coverage research → Sonnet.** Highest coverage came from Sonnet; classification errors were minor on both sides; zero critical. The grading baseline itself had 3 errors, surfaced by the candidate runs.
 5. **Design mockups → Sonnet.** Human-blind pick: best single mockup was Sonnet, a good one was Opus, and duds came from both — no model direction. The rational move is to raise the candidate count, not the model. One dud shipped a "style variable declared but unwired" bug that only a render capture catches.
 6. **Emergent implementation → Opus/Fable + gate.** A concurrent-edit merge algorithm. Flawless runs: **Fable 2/2 > Opus 1/2 > Sonnet 0/2.** All 6 runs passed their own tests; 3 shipped a merge-blocker anyway. Fable ≈ 3× the cost of Opus per run. So: gate is mandatory regardless of model; reserve Fable for the hardest.

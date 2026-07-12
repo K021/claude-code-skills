@@ -1,6 +1,6 @@
 ---
 name: leaf-plan-draft
-description: Produce a PLANNING DOCUMENT (not code) where investigation and trade-off analysis are the substance — restructure/migration plans. Output is always a "pre-review draft". If inventing a new architecture or algorithm is the substance of the plan, it should be delegated to a mid-tier (opus) model instead. (Measured: on organize-and-analyze plans, a low-tier model had zero critical defects.)
+description: Produce a SCOPED PLAN document (not code): the goal is known and the work is detailing it — investigation and trade-off analysis for a restructure/migration. Output is always a "pre-review draft". If the goal itself is unknown and the work is searching broadly for what to do (an exploratory plan), or inventing a new architecture/algorithm, delegate to a mid-tier (opus) model instead. (Measured: on organize-and-analyze plans, a low-tier model had zero critical defects.)
 model: sonnet
 ---
 

@@ -114,7 +114,7 @@ td.why{min-width:280px}
 <tr><th>leaf 유형</th><th>권장 모델</th><th>필수 조건</th><th>핵심 근거</th></tr>
 <tr><td><a href="#c1" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">① 관점 지정 리뷰</a></td><td><span class="m s">sonnet</span></td><td>기준(gold·체크리스트) 명시</td><td>recall 4/4 동률·치명적 결함 0</td></tr>
 <tr><td><a href="#c2" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">② 방법 지정 수리·리팩터링</a></td><td><span class="m s">sonnet</span></td><td>오라클(테스트·대조) 동봉</td><td>오라클 만점 + 결함 0 (opus는 minor 2·2)</td></tr>
-<tr><td><a href="#c3" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">③ 계획 문서 초안</a></td><td><span class="m s">sonnet</span></td><td>검토 강도는 파급이 정한다 — 생략 / opus 독립검토 / fable 심층검토</td><td>치명적 결함 sonnet 0 vs opus 1</td></tr>
+<tr><td><a href="#c3" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">③ 닫힌 계획 문서 작성</a></td><td><span class="m s">sonnet</span></td><td>검토 강도는 파급이 정한다 — 생략 / opus 독립검토 / fable 심층검토</td><td>치명적 결함 sonnet 0 vs opus 1</td></tr>
 <tr><td><a href="#c4" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">④ 커버리지형 조사</a></td><td><span class="m s">sonnet</span></td><td>대조 기준 명시</td><td>커버 47/49 최고·치명적 결함 0</td></tr>
 <tr><td><a href="#c5" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑤ 디자인 시안</a></td><td><span class="m s">sonnet</span></td><td><b>렌더 화면 자동 캡처 검토 명시</b></td><td>사람 블라인드 최고 1회·치명적 결함 0</td></tr>
 <tr><td><a href="#c6" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑥ 창발 구현</a></td><td><span class="m o">opus</span> 또는 <span class="m f">fable</span></td><td><b>병합 전 독립 적대 리뷰 의무</b></td><td>무결: fable 2/2 · opus 1/2 · sonnet 0/2 — 게이트는 모델 불문 필수</td></tr>
@@ -260,8 +260,8 @@ td.why{min-width:280px}
 
 <div class="card" id="c3">
 <div class="ax">C 판단·결정 · 측정: 파일럿 62</div>
-<h3>③ 계획 문서 초안 <span class="m s">sonnet</span> <span class="cond">+ 검토 강도는 파급이 정한다 — 본문 결정 절차 참조</span></h3>
-<div class="qbox"><span class="q">구분 기준:</span> 산출물이 코드가 아니라 계획 문서이고, 조사와 트레이드오프 정리가 일의 본체인가?</div>
+<h3>③ 닫힌 계획 문서 작성 <span class="m s">sonnet</span> <span class="cond">+ 검토 강도는 파급이 정한다 — 본문 결정 절차 참조</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 산출물이 코드가 아니라 계획 문서이고, 조사와 트레이드오프 정리가 일의 본체인가? (목표가 정해진 '닫힌' 계획이면 여기 — sonnet. 목표부터 넓게 찾아야 하는 '열린' 계획은 상위 모델.)</div>
 
 <dl class="kv" style="margin:10px 0">
 <dt>언제 쓰는 유형인가</dt>
@@ -276,8 +276,8 @@ td.why{min-width:280px}
 <dd><ul style="margin:4px 0">
 <li><b>초안 작성 — 누가 쓰나</b>
 <ul style="margin:2px 0">
-<li>조사·정리형 — 현재 상태를 근거로 단계·리스크·완료 기준을 정리하는 계획 → <span class="m s">sonnet</span> — <b>파급이 커도 마찬가지다</b>. 근거는 실측이다: 아래 측정 태스크가 바로 파급 큰 계획이었는데 sonnet이 밀리지 않았다.</li>
-<li>설계 발명형 — 새 아키텍처·알고리즘을 고안하는 것이 본체인 계획 → <span class="m o">opus 이상</span>. 이 카드의 측정 밖이라 <a href="#c6">⑥ 창발 구현</a>의 증거를 유추한 보수적 선택이다.</li>
+<li><b>닫힌 계획</b>(목표가 정해진 계획) — 현재 상태를 근거로 단계·리스크·완료 기준을 상세화 → <span class="m s">sonnet</span> — <b>파급이 커도 마찬가지다</b>. 근거는 실측이다: 아래 측정 태스크가 바로 파급 큰 계획이었는데 sonnet이 밀리지 않았다.</li>
+<li><b>열린 계획</b>(목표를 찾아야 하는 계획) — 무엇을 할지 넓게 찾거나 새 설계를 고안하는 것이 본체 → <span class="m o">opus 이상</span>. 이 카드의 측정 밖이라 <a href="#c6">⑥ 창발 구현</a>의 증거를 유추한 보수적 선택이다.</li>
 </ul></li>
 <li><b>검토 — 누가 검증하나</b>
 <ul style="margin:2px 0">
@@ -334,7 +334,7 @@ td.why{min-width:280px}
 </table></div>
 
 <dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
-<li><b>계획 문서 초안은 sonnet으로 충분하다 — 정확히는 "sonnet이 밀리지 않는다".</b> 치명적 결함을 낸 쪽은 오히려 opus였다. 다만 실행 2회씩의 결과이므로 "sonnet이 더 안전하다"까지는 말할 수 없다.</li>
+<li><b>닫힌 계획 문서는 sonnet으로 충분하다 — 정확히는 "sonnet이 밀리지 않는다".</b> 치명적 결함을 낸 쪽은 오히려 opus였다. 다만 실행 2회씩의 결과이므로 "sonnet이 더 안전하다"까지는 말할 수 없다.</li>
 <li><b>최고 단일 산출도 opus, 유일한 치명적 결함도 opus.</b> 같은 모델의 실행 간 편차가 모델 간 차보다 크다는 패턴이 계획에서도 반복됐다.</li>
 <li><b>계획의 안전장치는 모델 상향이 아니라 독립검토다.</b> 치명적 결함을 낸 쪽이 상위 모델이었다는 사실이 이를 뒷받침한다 — 누가 어떤 검토를 하는지는 위 결정표에.</li>
 </ul></dd></dl>
