@@ -14,6 +14,10 @@
     {
       "name": "project-structure",
       "source": "./skills/project-structure"
+    },
+    {
+      "name": "model-routing",
+      "source": "./agents/model-routing"
     }
   ]
 }

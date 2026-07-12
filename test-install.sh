@@ -55,10 +55,21 @@ for p in $PLUGINS; do
   if ! printf '%s' "$list" | grep -q "$p@$MKT_NAME"; then
     echo "  ❌ $p — not in plugin list"; fail=1; continue
   fi
-  if find "$CFG/plugins/cache/$MKT_NAME/$p" -name SKILL.md 2>/dev/null | grep -q .; then
+  # A plugin's payload is a SKILL.md (skill plugin), agents/*.md (agent plugin),
+  # or commands/*.md (command plugin) — accept any.
+  # The install cache nests content under a version dir (…/$p/<version>/…), so
+  # match recursively. Payload is SKILL.md (skill), agents/*.md (agent), or
+  # commands/*.md (command) — accept any.
+  pdir="$CFG/plugins/cache/$MKT_NAME/$p"
+  if find "$pdir" -name SKILL.md 2>/dev/null | grep -q .; then
     echo "  ✅ $p — installed + SKILL.md present"
+  elif find "$pdir" -path '*/agents/*.md' 2>/dev/null | grep -q .; then
+    n=$(find "$pdir" -path '*/agents/*.md' | wc -l | tr -d ' ')
+    echo "  ✅ $p — installed + $n agent(s) present"
+  elif find "$pdir" -path '*/commands/*.md' 2>/dev/null | grep -q .; then
+    echo "  ✅ $p — installed + command(s) present"
   else
-    echo "  ⚠ $p — installed but SKILL.md missing"; fail=1
+    echo "  ⚠ $p — installed but no SKILL.md / agents / commands found"; fail=1
   fi
 done
 

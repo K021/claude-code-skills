@@ -1,0 +1,777 @@
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaf Routing Guide — Type · Model · Cost, Measured Head-to-Head</title>
+<style>
+:root{
+  --bg:#FAFAF7; --panel:#FFFFFF; --ink:#22262B; --muted:#6E6A64; --line:#E4E1DA;
+  --link:#0F766E; --soft:#F1EFE9;
+  --fable:#3F3D8F; --opus:#98530F; --sonnet:#0E7468;
+  --fable-bg:#EDEDF8; --opus-bg:#F7EEDF; --sonnet-bg:#E4F2EF;
+  --ok:#116329; --warn:#B54708; --bad:#B42318;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#141619; --panel:#1C1F23; --ink:#E8E6E1; --muted:#9B968E; --line:#31353B;
+    --link:#3CBDAF; --soft:#22252B;
+    --fable:#A5A3E8; --opus:#E0A468; --sonnet:#54C4B4;
+    --fable-bg:#26264a; --opus-bg:#3a2c17; --sonnet-bg:#173832;
+    --ok:#6FC08A; --warn:#D99A4E; --bad:#E5776A;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.75 Pretendard,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;}
+.wrap{max-width:900px;margin:0 auto;padding:48px 28px 80px}
+h1{font-size:30px;line-height:1.3;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+h2{font-size:21px;letter-spacing:-.01em;margin:2.6em 0 .5em;padding-top:1em;border-top:1px solid var(--line);text-wrap:balance}
+h3{font-size:16.5px;margin:1.6em 0 .4em}
+p{margin:.55em 0;max-width:72ch}
+.lede{font-size:17px;color:var(--muted);max-width:66ch}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px}
+.chip{font:600 12px var(--mono);letter-spacing:.03em;padding:4px 12px;border:1px solid var(--line);border-radius:14px;color:var(--muted);background:var(--panel)}
+a{color:var(--link)}
+table{border-collapse:collapse;font-size:14px;margin:.8em 0;font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto;margin:.8em 0}
+th{font-size:12.5px;letter-spacing:.04em;color:var(--muted);text-align:left;font-weight:700}
+th,td{border-bottom:1px solid var(--line);padding:8px 14px 8px 0;vertical-align:top}
+td:last-child,th:last-child{padding-right:0}
+.b{font-weight:700}
+.m{font:600 12.5px var(--mono);padding:2px 9px;border-radius:5px;white-space:nowrap}
+.m.f{color:var(--fable);background:var(--fable-bg)}
+.m.o{color:var(--opus);background:var(--opus-bg)}
+.m.s{color:var(--sonnet);background:var(--sonnet-bg)}
+.m.x{color:var(--bad);background:transparent;border:1px solid var(--bad)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:22px 26px;margin:18px 0}
+.card h3{margin:0 0 2px;font-size:17px}
+.card .ax{font:700 11.5px var(--mono);letter-spacing:.07em;color:var(--muted)}
+.qbox{background:var(--soft);border-radius:8px;padding:10px 16px;margin:10px 0;font-size:14.5px}
+.qbox .q{font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 26px;margin:10px 0}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.kv{font-size:14px}
+.kv dt{font-size:12px;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-top:8px}
+.kv dd{margin:1px 0 0}
+.verdict{display:flex;align-items:baseline;gap:10px;margin:12px 0 2px;padding-top:12px;border-top:1px dashed var(--line);flex-wrap:wrap}
+.verdict .lab{font-size:12px;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.cond{font-size:13.5px;color:var(--warn)}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+.note{font-size:13.5px;color:var(--muted)}
+.principle{margin:14px 0;padding-left:18px;border-left:3px solid var(--line)}
+.principle .t{font-weight:700}
+ul{padding-left:1.3em;max-width:74ch} li{margin:.3em 0}
+.small{font-size:13px;color:var(--muted)}
+.toc{font-size:13.5px;columns:2;column-gap:40px;margin:14px 0;padding:14px 20px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.toc a{text-decoration:none;display:block;padding:2px 0;color:var(--ink)}
+.toc a:hover{color:var(--link)}
+@media(max-width:640px){.toc{columns:1}}
+code{font-family:var(--mono);font-size:.86em;background:var(--soft);padding:1px 5px;border-radius:4px}
+.hero-table td{font-size:14.5px}
+.nw{white-space:nowrap}
+td.why{min-width:280px}
+</style>
+
+<div class="wrap">
+
+<h1>Leaf Routing Guide — Which Work Goes to Which Model</h1>
+<p class="lede">Results from replaying the 8 sub-agent task types from a real project (the burst2 note app) exactly as-is, comparing fable, opus, and sonnet under identical conditions, and cross-checking against the original session's deliverables. This conclusion went through 38 runs, three-layer grading (automated oracle → verifying LLM panel → human blind), and 10 rounds of independent review.</p>
+<div class="meta">
+  <span class="chip">2026-07-10 ~ 07-12</span><span class="chip">38 runs · $328.67</span>
+  <span class="chip">8 tasks · selected from an inventory of 158</span><span class="chip">all 6 critical defects caught by the gate</span>
+</div>
+
+<div class="toc">
+  <a href="#s1">1. At a Glance — Routing Table</a>
+  <a href="#s2">2. Decide This First — Cost Frame</a>
+  <a href="#s3">3. Type Definitions and Verdicts (10 types)</a>
+  <a href="#s4">4. Cost / Quota Efficiency, Measured</a>
+  <a href="#s5">5. Five Principles + Three Operational Traps</a>
+  <a href="#s6">6. Confidence Labels and Sources</a>
+</div>
+
+
+<div class="card" style="background:var(--soft)">
+<h3 style="margin-top:0">Terms Used in This Document</h3>
+<div class="grid2"><dl class="kv">
+<dt>leaf</dt><dd>A unit of work that the main AI session (Fable) delegates wholesale to a sub-agent. It receives a single instruction containing the background and completion criteria, performs the work independently, and returns only the result.</dd>
+<dt>run</dt><dd>One execution of a single leaf instruction by one model. This benchmark ran each instruction <b>twice per model</b> (run 1 / run 2) — because the same model produces different results across runs (run-to-run variance), we only trust rankings when they rest on "presence of a critical defect + a large gap."</dd>
+<dt>gold (answer key)</dt><dd>The confirmed result of when that task was actually carried out in the original project — e.g., the list of defects that review found and that a later repair commit proved to be real. This is the standard against which new runs are graded. <b>Each card notes which model and process the answer key came from</b> — because directly comparing a reviewed, improved version against a single run would be unfair.</dd>
+</dl><dl class="kv">
+<dt>oracle</dt><dd>Automated grading that issues pass/fail mechanically, without human judgment (running tests, byte-for-byte comparison, etc.).</dd>
+<dt>panel</dt><dd>A verifying LLM adjudication of quality — it finds defects per deliverable with model names hidden (blind), and only admits major claims that pass a separate disconfirming verification.</dd>
+<dt>critical defect (MAJOR) / minor</dt><dd>Critical defect = the kind that should block a merge — misdiagnosis, data corruption, security. minor = a flaw that's nice to fix.</dd>
+<dt>gate</dt><dd>The independent verification checkpoint a deliverable passes through before it is merged / adopted (adversarial review, oracle, human selection).</dd>
+</dl></div>
+</div>
+
+<h2 id="s1">1. At a Glance — Routing Table</h2>
+<p>Premise: <b>a structure in which Fable (the main session) continues to do the decomposition and prompt-writing, and only dispatches the leaf execution</b>. Prompts are assumed to be well-written and self-contained — containing background, completion criteria, and even the instruction to verify the current code directly. If this premise breaks (a one-line instruction with no context), the table below is not guaranteed.</p>
+<div class="tblwrap"><table class="hero-table">
+<tr><th>leaf type</th><th>recommended model</th><th>required condition</th><th>key evidence</th></tr>
+<tr><td><a href="#c1" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">① Perspective-specified review</a></td><td><span class="m s">sonnet</span></td><td>standard (gold / checklist) specified</td><td>recall 4/4 tied · 0 critical defects</td></tr>
+<tr><td><a href="#c2" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">② Method-specified repair / refactor</a></td><td><span class="m s">sonnet</span></td><td>oracle (test / comparison) enclosed</td><td>perfect oracle score + 0 defects (opus had 2·2 minor)</td></tr>
+<tr><td><a href="#c3" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">③ Plan document draft</a></td><td><span class="m s">sonnet</span></td><td>review intensity is set by blast radius — skip / opus independent review / fable deep review</td><td>critical defects: sonnet 0 vs opus 1</td></tr>
+<tr><td><a href="#c4" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">④ Coverage-type research</a></td><td><span class="m s">sonnet</span></td><td>comparison standard specified</td><td>coverage 47/49, the best · 0 critical defects</td></tr>
+<tr><td><a href="#c5" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑤ Design mockup</a></td><td><span class="m s">sonnet</span></td><td><b>specify automated capture-and-review of the rendered screen</b></td><td>best in human blind once · 0 critical defects</td></tr>
+<tr><td><a href="#c6" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑥ Emergent implementation</a></td><td><span class="m o">opus</span> or <span class="m f">fable</span></td><td><b>independent adversarial review before merge is mandatory</b></td><td>clean: fable 2/2 · opus 1/2 · sonnet 0/2 — the gate is mandatory regardless of model</td></tr>
+<tr><td><a href="#c7" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑦ Pure diagnosis / repair</a></td><td><span class="m o">opus</span>, <span class="m f">fable</span> if important</td><td>same gate mandatory</td><td>fable 2/2 root + clean · opus clean but middling · sonnet 1 critical once</td></tr>
+<tr><td><a href="#c8" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑧ Discovery-type research</a></td><td><span class="m o">opus or higher</span></td><td>—</td><td>hidden finds 7·9 vs 3·2 — the clearest gap</td></tr>
+<tr><td><a href="#c9" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑨ Adversarial review gate</a></td><td><span class="m f">keep fable</span></td><td>—</td><td>on identical candidates, fable 3 MAJOR vs opus 0</td></tr>
+<tr><td><a href="#c10" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑩ Strategy/execution two-stage split</a></td><td><span class="m x">forbidden</span></td><td>—</td><td>discovery vanishes (0) · worst-case execution risk · higher cost</td></tr>
+</table></div>
+
+<h2 id="s2">2. Decide This First — Cost Frame</h2>
+<p>Whether the "sonnet ↓" in the table above is a gain depends on <b>what you are trying to save</b>. The two frames the measurements separate:</p>
+<h3>Frame A — To save dollars (API cost): <span class="bad">no benefit from downgrading was observed</span></h3>
+<p>The list-price ratio is opus:sonnet = 1.67×, but the <b>realized run-cost gap is only 1.13×</b> (16 matched task pairs: opus $104.85 vs sonnet $93.01). Because sonnet spends on average 1.7× the turns (34 turns vs 59 turns) on the same work, the unit-price difference is offset. In the dollar frame, staying the course is the answer, and the only actionable implication of this benchmark is "make the gate mandatory for emergent leaves."</p>
+<h3>Frame B — To save on usage quota: <span class="ok">there is a benefit, but not where people usually think it is</span></h3>
+<ul>
+<li><b>How the quota is structured</b>: A separate per-model quota exists only for Fable; the weekly and session quotas are shared across all models. But the shared quota is <b>consumed with model weighting</b> — for the same work, a more expensive model draws down the quota faster (the weighting factor is undisclosed; estimated to be proportional to unit price).</li>
+<li><b>The quota benefit of an opus → sonnet downgrade is marginal.</b> If the weighting is proportional to unit price, quota-consumption ratio ≈ realized-cost ratio = 1.13× — only about 10% savings. That's because sonnet uses 1.7× the tokens on the same work (same reason as Frame A).</li>
+<li><b>The real gain is "moving the leaves that fable was doing out of fable" itself.</b> The default for leaf dispatch is the session model (fable), so if you don't specify, every leaf consumes Fable's separate quota. Based on the 158 dispatches in the original session, the types that can be pushed down to sonnet/opus (<a href="#c1">①</a>–<a href="#c5">⑤</a>) are at least ~40% — and that much of Fable's quota is preserved wholesale.</li>
+<li><b>Once pushed down, opus vs sonnet is nearly indifferent from a quota standpoint</b> — decide by the measured quality/stability (each card). This document's "sonnet" recommendation is grounded not in quota savings but in "it was measured not to fall behind, and is marginally cheaper."</li>
+</ul>
+<h2 id="s3">3. Type Definitions and Verdicts</h2>
+<p>If the answer to a type's <b>discriminating-criterion</b> question is "yes," it is that type. Check from the top in order and apply the first type that matches (when emergent and diagnostic are mixed, favor the more conservative side).</p>
+
+<div class="card" id="c1">
+<div class="ax">D ERROR DETECTION · MEASUREMENT: PILOT 132</div>
+<h3>① Perspective-specified review <span class="m s">sonnet</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Does the review instruction contain a checklist of "what to look at and from which perspective"?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li><b>Pre-merge gate review</b> (representative) — in the original project, every time a feature was finished it was standard practice to run a pre-merge adversarial review: "review this diff from privacy / performance / test-effectiveness perspectives." The measurement sample is all of this pattern.</li>
+<li>Specified-perspective review of a change involving security or privacy.</li>
+<li>Verification comparing a plan or document against a list of completion criteria.</li>
+<li>The checklist is <b>written and assigned by the delegating main session just before merge</b>:
+<ul style="margin:2px 0">
+<li>The work of "pointing out where the risk is" is itself a discovery-type judgment (<a href="#c8">⑧</a>), so leaving it to the higher model is consistent with this benchmark's other measurements.</li>
+<li>But checklist-writing ability was not directly measured this time — we note that this is inference, not measurement.</li>
+</ul></li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What the work was</b>: While building a feature to publish notes to a public web URL, code came in that added "a badge showing the number of child items" to that page. The task is to review the correctness of this code before merge.</li>
+<li><b>Perspectives specified</b>: privacy leakage, correctness/performance, test effectiveness — a checklist of three perspectives was assigned.</li>
+<li><b>An answer key exists</b>: This code hides a merge-blocking defect — its identity is in "What the answer key is" below. The code that counts the badge number re-counts the child tree from scratch for every item, so the compute cost explodes as the square of the item count, and this page can be reached by anyone without login, making it a channel for a service-crashing attack.</li>
+<li><b>Grading criterion</b>: Does it find this defect on its own?</li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: The confirmed list of one merge-blocking defect — a service-crash channel caused by compute explosion.</li>
+<li><b>Model that produced it</b>: A review by a standalone <span class="m o">opus</span> run at the time found it.</li>
+<li><b>Process it went through</b>: That finding led to an actual repair commit, proving the defect was real — this is a confirmed fact, not someone's opinion.</li>
+<li><b>Caution when comparing</b>: Only the presence/absence of the finding has a ground truth; report quality has no ground truth, so it was judged separately by a blind panel.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>The same review instruction was delegated to opus and sonnet twice each, 4 runs total.</li>
+<li>Each run is <b>a single delegation</b> — completed with one instruction, no mid-course intervention. However, the instruction prescribes <b>3 rounds</b>, one per perspective, and requires "re-reading the diff/source each round, until findings per perspective are exhausted," so internally it is a multi-round review. All 4 runs stated in their reports that they completed all 3 rounds.</li>
+<li>Grading is two-layer. Layer 1 is whether the ground-truth defect was caught — a mechanical judgment comparing against the answer key. Layer 2 is the quality of the review report itself — a blind panel with model names hidden finds flaws in the report such as false positives, inaccurate descriptions, and exaggeration.</li>
+<li>All four runs didn't just assert their defect claims verbally but demonstrated them themselves: running the full test suite, a performance benchmark, and <b>mutation testing</b> — a technique of deliberately planting a defect in the code (e.g. removing the privacy filter) and checking whether an existing test flips to FAIL. If it doesn't, that test is decoration. With this they proved "the tests attached to the diff are not hollow."</li>
+</ul></dd>
+</dl>
+
+
+
+<div class="tblwrap"><table>
+<tr><th>model</th><th style="white-space:nowrap">run</th><th>ground-truth defect caught</th><th>self-run demonstration</th><th>panel findings<sup>*</sup></th><th>cost</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>✓ accurate</td><td>test suite + 2 mutations + performance micro-bench</td><td class="ok">0 — cleanest</td><td>$2.39</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>✓ accurate</td><td>build + suite + 2 mutations</td><td class="warn">3 — messiest</td><td>$2.84</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>✓ accurate <span class="small">+ also found a separate pre-existing defect and correctly judged, via comparison against the original, that "it's not caused by this change"</span></td><td>A/B bench before and after the fix, measuring the square explosion (2.7×→6.6×)</td><td>1</td><td>$3.37</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>✓ accurate</td><td>isolated reproduction bench (measured 8.3 s at 16,000 items)</td><td>2</td><td>$2.60</td></tr>
+</table></div>
+<p class="note"><sup>*</sup>panel findings = the count of flaws the blind adjudication found in <b>the review report itself</b> (claims of nonexistent defects, inaccurate file/figure citations, exaggeration, etc. — all minor-grade, 0 critical).</p>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>Perspective-specified review is fine with sonnet.</b> All 4 runs caught the answer, and the demonstration density was comparable too — when "where to look" is settled upstream via a checklist, what remains is the execution of digging into the specified spots to the end, and here the two models were indistinguishable.</li>
+<li><b>Two reviews beat one review by a good model.</b> The cleanest and the messiest report both came from <b>the same model (opus)</b> — the same model's run-to-run variance is larger than the between-model gap.</li>
+<li><b>sonnet isn't cheaper in dollar terms either.</b> Total of the 2 runs of this task: opus $5.23 vs sonnet $5.97 — the payoff of downgrading is not dollars but higher-model quota savings (<a href="#s2">§2</a>).</li>
+<li><b>Checklist-writing stays with the higher model.</b> Even if you push the review execution down, the upstream judgment of "pointing out where the risk is" is a discovery-type ability and shouldn't be economized on.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>Caution</dt><dd>Open deep review <b>without</b> a checklist is treated as <a href="#c9">⑨ Adversarial review gate</a> — a completely different ability of "inventing where to dig on your own," and there the higher-model gap was real.</dd></dl>
+</div>
+
+<div class="card" id="c2">
+<div class="ax">E PRECISE-CONSTRAINT EXECUTION · MEASUREMENT: PILOT 151</div>
+<h3>② Method-specified repair / refactor <span class="m s">sonnet</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is "what to fix and how" already in the instruction, and is a means for a machine to judge whether it was fixed — an oracle — provided along with it?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li>Execution delegation of a bug <b>whose cause and repair method are already agreed on</b> — diagnosis is done and only the fixing remains.</li>
+<li><b>A refactor that must preserve behavior</b> — work like structural conversion, module separation, or performance improvement where "the visible result stays the same" is required.</li>
+<li>Enclosing an oracle is the <b>constitutive condition</b> of this type. The moment it becomes "just fix it however" without a judging means such as tests or output comparison, it escalates to <a href="#c7">⑦ Pure diagnosis / repair</a>, and the recommended model and safeguards change.</li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What the work was</b>: The server code of the publish feature that deploys notes to a public web URL had a structure where two functions that render the page recursively called each other. When it encounters a document nested more than 1,900 levels deep, the calls get too deep and the whole server dies — since it's a URL reachable without login, a single request can kill the server.</li>
+<li><b>Method specified</b>: The repair method is already in the instruction — convert the recursion to an iterative-loop structure. But the page's render result must be <b>byte-for-byte identical to before</b>. Because this is not a behavior change but a structure-only refactor.</li>
+<li><b>Grading criterion</b>: Did the crash disappear on deep documents, and is the output completely identical?</li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>Why "the output of the pre-fix code" is the answer</b>: It seems paradoxical at first — how can the output of buggy code be the answer? Because this work's requirement is "eliminate only the crash, and keep the rendered-page result exactly the same as before." The pre-fix code's only defect is that it dies on very deeply nested documents, and it <b>renders ordinary documents correctly</b>. So the output taken from ordinary documents becomes the answer as-is, and if the post-fix code produces a character-for-character identical result on the same document, it passes.</li>
+<li><b>What</b>: The output of the 3 documents extracted that way — a document with shared items, an 1,800-level document, a formatted document. Plus one separate criterion: on the 3,000-level document that killed the pre-fix code, <b>it must not die after the fix</b>.</li>
+<li><b>Model that produced it</b>: None — it is the output the code itself produced, so there is no room for model bias. The most objective answer key in this benchmark.</li>
+<li><b>Process it went through</b>: The grader generated it directly in a separate environment, and first reproduced the pre-fix code actually dying on the 3,000-level document to confirm the answer key was valid.</li>
+<li><b>Note — who did the repair in the original session</b>: The one that actually performed this repair was the <span class="m f">fable</span> run at the time (default dispatch with no model specified). That deliverable is not the grading standard but a reference comparison — the code output above serves as the ground truth instead.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>The same instruction was delegated to opus and sonnet twice each, 4 runs total.</li>
+<li>Grading was done with <b>an independent harness that does not trust the candidate's claims</b>. In a separate environment the grader built the 3 answer outputs from the pre-fix code — since it's the code itself, not a particular model's output, there's no source bias — a document with shared items, an 1,800-level document, a formatted document — and compared the candidate code's output byte by byte. It also first reproduced the pre-fix code actually crashing on the 3,000-level document, confirming the validity of the oracle itself.</li>
+<li>Added to this were re-running the 132 existing tests and a quality adjudication by a blind panel with model names hidden.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>model</th><th style="white-space:nowrap">run</th><th>3 byte-identical</th><th>3,000-level no crash</th><th>existing tests</th><th>panel findings<sup>*</sup></th><th>cost</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>✓ all identical</td><td>✓</td><td>✓ +11 self-added</td><td class="warn">2</td><td>$6.67</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>✓ all identical</td><td>✓</td><td>✓ +2 self-added</td><td class="warn">2</td><td>$10.86</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>✓ all identical</td><td>✓</td><td>✓ +9 self-added</td><td class="ok">0</td><td>$9.45</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>✓ all identical</td><td>✓</td><td>✓ +3 self-added</td><td class="ok">0</td><td>$6.70</td></tr>
+</table></div>
+<p class="note"><sup>*</sup>The content of the panel findings is interesting — all 4 of opus's flaws were not in the code but <b>mismatches between the report and the deliverable</b>: a verification tool it claimed to use was absent from the commit, it exaggerated a gap in existing test coverage, or a newly built oracle verified in only one direction. The code itself was clean in all 4 runs.</p>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>A repair where method and oracle are provided together is fine with sonnet.</b> All 4 runs score perfect on the oracle, and 0 panel flaws is actually on the sonnet side.</li>
+<li><b>Even a hard constraint like "byte-for-byte identical" becomes an execution problem when the judging means comes with it.</b> It's not that a hard constraint requires a higher model, but whether there's an oracle to verify the constraint that matters.</li>
+<li><b>Comparing report claims against the deliverable is an effective gate for this type too.</b> A case actually surfaced where the claim "verified with 500 random cases" was not in the commit — even when the code is perfect, the report can inflate.</li>
+<li><b>Dollar cost is comparable</b> — 2-run total opus $17.53 vs sonnet $16.15. The payoff of downgrading is quota.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>Caution</dt><dd>The oracle must be <b>derived from a merged / confirmed standard</b>. If the party doing the repair uses tests it wrote itself as the oracle, it shares its own blind spot — this trap was confirmed in the flesh in <a href="#c6">⑥ Emergent implementation</a>.</dd></dl>
+</div>
+
+<div class="card" id="c3">
+<div class="ax">C JUDGMENT · DECISION · MEASUREMENT: PILOT 62</div>
+<h3>③ Plan document draft <span class="m s">sonnet</span> <span class="cond">+ review intensity is set by blast radius — see the decision procedure in the body</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is the deliverable a plan document rather than code, and is the body of the work the research and the organizing of trade-offs?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li>A plan-document draft for work like a structural change or migration <b>where the steps and risks must be organized before implementation</b>.</li>
+<li>Code modification is forbidden, and the deliverable is a single document containing the researched rationale, step breakdown, completion criteria, and a list of open decisions.</li>
+<li><b>Why it's named "draft"</b>: This leaf's deliverable is always a pre-review draft rather than a finalized plan. If the blast radius is large it is finalized via independent review per the standard below; if it's local, the draft may be adopted as-is — finality is decided by the gate, not the name.</li>
+
+</ul></dd>
+
+<dt>Decision procedure — who writes and who verifies this plan</dt>
+<dd><ul style="margin:4px 0">
+<li><b>Draft writing — who writes it</b>
+<ul style="margin:2px 0">
+<li>Research/organizing type — a plan that organizes steps, risks, and completion criteria based on the current state → <span class="m s">sonnet</span> — <b>the same even if the blast radius is large</b>. The basis is measurement: the measured task below was exactly a large-blast-radius plan, and sonnet did not fall behind.</li>
+<li>Design-invention type — a plan whose body is devising a new architecture or algorithm → <span class="m o">opus or higher</span>. This is outside this card's measurement, a conservative choice inferred from the evidence of <a href="#c6">⑥ Emergent implementation</a>.</li>
+</ul></li>
+<li><b>Review — who verifies it</b>
+<ul style="margin:2px 0">
+<li>Blast radius local — at the level of organizing the reorder of a single screen → review can be skipped.</li>
+<li>Blast radius large → <span class="m o">opus</span> independent review. "Large blast radius" holds if any one of the following:
+<ul style="margin:2px 0">
+<li>does a lot of downstream work stand on this plan</li>
+<li>does it move something hard to reverse — migration, etc.</li>
+<li>does an interpretation difference decide user-visible behavior</li>
+</ul>
+The reviewer basis is one measurement: the adjudicator that caught this measurement's critical defect was opus. If you specify the perspective to look at, there's room to push down to sonnet, per the result of <a href="#c1">①</a>.</li>
+<li>Top-level risk — a decision that decides product direction, an irreversible data move → <span class="m f">fable</span> open deep review. Unmeasured — a conservative choice inferred from the evidence of <a href="#c9">⑨</a>.</li>
+</ul></li>
+</ul></dd>
+<p class="note" style="margin:6px 0 0">What size changes is not "who writes the draft" but <b>"how hard the review is"</b> — this is the answer this card's measurement gave.</p>
+</dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What the work was</b>: In the MVP-validation phase, the page list and sidebar tree sat on a temporary structure — browser storage and hardcoded data — while only the body content was in a real database. So a contradiction actually arose where an item visible in the sidebar didn't exist in the body content. The task is to write a document with a migration plan to unify this dual structure into a single data model.</li>
+<li><b>This plan meets the "large blast radius plan" criterion above</b> — a lot of downstream work stands on it, and a migration is involved, so it's hard to reverse if it goes wrong.</li>
+<li><b>The grading method is distinctive — hindsight grading</b>: This plan actually went all the way to implementation in the original project — the implementation run was fable at the time — and 4 traps stepped into in that process remain on record. Those traps are back-computed to check "did the plan warn about them in advance" — a way of grading plan quality not by taste but by facts confirmed after the fact.</li>
+<li><b>The 4 traps</b>:
+<ul style="margin:2px 0">
+<li>The explosion problem of counting the same item redundantly in deep-tree lookups</li>
+<li>Handling the edge case of page navigation</li>
+<li>Is the migration safe to run twice, and can it be rolled back if it fails</li>
+<li>Did the plan include not just the data structure but the screen the user will operate on</li>
+</ul></li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: The list of 4 traps the plan should have foreseen.</li>
+<li><b>Model that produced it</b>: It's not a particular model's output — it was back-computed from the event record of what the later actual implementation (the <span class="m f">fable</span> run at the time) and the independent review actually stepped into or caught.</li>
+<li><b>Process it went through</b>: All confirmed after-the-fact facts from commit and review records.</li>
+<li><b>Caution when comparing</b>: The adopted plan document from the original session is an improved version reflecting 26 rounds of independent review, so <b>it was not used for comparison</b> — directly comparing a reviewed version against a single run would be unfair.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>The same instruction was delegated to opus and sonnet twice each, 4 runs total.</li>
+<li>Grading judged whether each of the 4 traps was foreseen, together with document-citation evidence, and separately a blind panel found defects in the plan itself — unrealizable steps, self-contradiction, wrong attribution.</li>
+<li>Direct comparison against the original session's adopted version was not done. The adopted version is an improved version that went through 26 rounds of independent review, so comparing it against a single run with no review would be unfair.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>model</th><th style="white-space:nowrap">run</th><th>4 traps foreseen</th><th>critical defects</th><th>panel findings</th><th>cost</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td class="ok">all 4 — the only perfect score</td><td class="ok">0</td><td>2 minor</td><td>$3.09</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>3 + 1 partial</td><td class="bad">1 — attributed a feature to the wrong operation (a direction error that would mislead an implementer who follows it)</td><td>2 minor</td><td>$3.57</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>3 + 1 partial</td><td class="ok">0</td><td>1 minor</td><td>$2.72</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>3 + 1 partial</td><td class="ok">0</td><td>2 minor</td><td>$4.80</td></tr>
+</table></div>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>A plan-document draft is fine with sonnet — more precisely, "sonnet does not fall behind."</b> The side that produced a critical defect was actually opus. That said, since these are results of 2 runs each, we can't go so far as "sonnet is safer."</li>
+<li><b>The best single output was also opus, and the only critical defect was also opus.</b> The pattern that the same model's run-to-run variance exceeds the between-model gap repeated in planning too.</li>
+<li><b>The safeguard for a plan is not a model upgrade but independent review.</b> The fact that the side producing a critical defect was the higher model backs this up — who does which review is in the decision table above.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>Caution</dt><dd>If the plan document is a strategy paper for "what to research and how to find it," it is not this type — the very construction of writing the strategy in advance and injecting it into the executor was rejected in <a href="#c10">⑩</a>.</dd></dl>
+</div>
+
+<div class="card" id="c4">
+<div class="ax">RESEARCH · WEB SEARCH (COVERAGE) · MEASUREMENT: PHASE 2-2 138</div>
+<h3>④ Coverage-type research <span class="m s">sonnet</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is the scope of what to find defined — official docs, a fixed source list — and is the goal to gather it completely and compare against a standard?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li><b>Exhaustive collection and comparison against the current state</b> of competing products, standards, or docs — research where "gather without omission" is the body of the value.</li>
+<li>The typical case is work that compares the collected results against our code/docs to build a classification table.</li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What the work was</b>: The task is to exhaustively collect the keyboard shortcuts of a competing note product from the official docs (Korean and English editions) and community write-ups, read our app's code directly, and classify each shortcut as "already supported / conflicts with another action / not implemented" to build a compatibility matrix.</li>
+<li><b>Answer key</b>: The confirmed matrix, 49 items — its identity and bias are in "What the answer key is" below. "The best being 47/49, short by 2" should be read not as a performance shortfall but as <b>the gap between a single run and a review-reflected version</b>.</li>
+<li><b>The classifications' correctness was also separately verified</b>: The grading panel picked at least 8 of each run's classifications and opened the code directly to re-verify.</li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: The confirmed compatibility matrix, 49 items.</li>
+<li><b>Model that produced it</b>: A run that started with <span class="m o">opus</span> and continued into <span class="m f">fable</span> mid-way wrote the draft.</li>
+<li><b>Process it went through</b>: A confirmed version reflecting 11 findings from 2 rounds of independent review — i.e., <b>a reviewed, improved version</b>.</li>
+<li><b>Caution when comparing</b>: A coverage comparison against a single run tilts in the answer key's favor. Moreover, in this grading 3 errors in the answer key itself surfaced, and candidates also found valid items not in the answer key — the answer key is not an absolute standard but a comparison standard.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>The same instruction was delegated to opus and sonnet twice each.</li>
+<li>The panel was instructed to "doubt the answer key too" — and indeed 3 errors in the answer key itself were surfaced in this process (missing official shortcuts, etc.). The original session's deliverable is not flawless either.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>model</th><th style="white-space:nowrap">run</th><th>coverage (of 49)</th><th>classification re-verified</th><th>critical defects</th><th>cost</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>44</td><td>12 of 13 accurate</td><td class="ok">0</td><td>$4.31</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>41</td><td class="ok">all 12 accurate</td><td class="ok">0</td><td>$3.69</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td class="ok">47 — best</td><td>12 of 14 accurate</td><td class="ok">0</td><td>$3.95</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>44</td><td>12 of 15 accurate</td><td class="ok">0</td><td>$5.21</td></tr>
+</table></div>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>Coverage-type research is fine with sonnet.</b> The coverage record-holder is sonnet, and the classification errors on both sides were all trivial local misclassifications — accuracy is slightly opus's edge (24 of 25 vs 24 of 29), but critical defects are 0 on both sides.</li>
+<li><b>Once the collection scope is defined, it becomes a problem of diligent traversal.</b> Discovery-type research where "where to look" is open produced completely different results — <a href="#c8">⑧</a>.</li>
+<li><b>Make it doubt the answer key too.</b> 3 errors in the grading standard itself were surfaced by the candidate runs — penalizing anything that differs from the standard unconditionally punishes the better answer.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c5">
+<div class="ax">DESIGN · MEASUREMENT: PHASE 2-2 77·114 — HUMAN BLIND</div>
+<h3>⑤ Design mockup / HTML production <span class="m s">sonnet</span> <span class="cond">+ specify automated capture-and-review of the rendered screen</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is the deliverable a visual-comparison artifact — a mockup round, comparison page, mockup — and does a human pick the final adoption?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li>A round where, before implementing a new screen or component, you make <b>a mockup HTML comparing several variants side by side</b> for a human to choose.</li>
+<li>The deliverable is a self-contained page that includes the selection-collection controls — radio buttons, a copy button.</li>
+</ul></dd>
+
+<dt>The actual tasks used for measurement (2)</dt>
+<dd><ul style="margin:4px 0">
+<li><b>Task A</b>: The editor's command menu got the feedback "the text is too big." The work is to design 4–6 variants along the axes of font size and density and make a comparison page.</li>
+<li><b>Task B</b>: The first mockup round for a trash-bin screen and a top menu panel that had never been built — 3 structural variants each, including per-state screens.</li>
+<li><b>What "the original session's adopted version" is</b>: The very comparison page that was produced when this mockup round actually ran in the original project, from which the user viewed and chose a variant — its identity is in "What the comparison standard is" below. The originals live in the project repository and can be opened directly for comparison.</li>
+<li><b>Comparison design</b>: For each task, opus ×2 and sonnet ×2 plus the adopted version — 5 items — were shuffled anonymously, and with which one was the adopted version also hidden, a human picked the best and the reject.</li>
+</ul></dd>
+
+<dt>What the comparison standard is — visual preference has no ground truth, so the adopted version is used instead of an "answer key"</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: The 2 comparison pages the user viewed and chose a variant from in the original round.</li>
+<li><b>Model that produced it</b>: Both were outputs of an <span class="m o">opus</span> run at the time.</li>
+<li><b>Process it went through</b>: Adopted as-is with no edits after production — per repository history, 0 changes since the introduction commit, hash-matched with the blind copy.</li>
+<li><b>Caution when comparing</b>: It's a version that once passed human selection, but in this blind round it went 1 win / 1 reject — an adoption record is not a quality guarantee.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>Human blind selection is the primary verdict — because visual quality has no automated grading. The grader's connotation criteria: <b>reject = a defect at the not-adoptable level, "so-so" = the level of not catching the eye</b>.</li>
+<li>Separately, the panel adjudicated only verifiable items: the required variant count, per-state screens, accuracy of numeric annotations, dark mode, self-containedness.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th class="nw">task</th><th class="nw">candidate</th><th class="nw">human verdict</th><th>reason</th></tr>
+<tr><td rowspan="5" class="nw">A command menu</td><td class="nw"><span class="m s">sonnet</span> run 2</td><td class="ok nw">best</td><td class="why">—</td></tr>
+<tr><td class="nw"><span class="m o">opus</span> run 1</td><td class="nw">good</td><td>"simple yet has everything it needs"</td></tr>
+<tr><td class="nw"><span class="m o">opus</span> run 2</td><td class="nw">passable</td><td class="why">—</td></tr>
+<tr><td class="nw"><span class="m s">sonnet</span> run 1</td><td class="bad nw">reject</td><td>declared style variables but never wired them, so the panel border was invisible — found separately by human and panel</td></tr>
+<tr><td class="nw">adopted (opus)</td><td class="bad nw">reject</td><td>the sample text of the dense variant was mistakenly placed in the filter-state cell — a defect that really exists in the adopted version; at the time the round focused on variant selection so it didn't surface, and was found in the blind re-check</td></tr>
+<tr><td rowspan="2" class="nw">B trash / menu</td><td class="nw">adopted (opus)</td><td class="ok nw">best</td><td>"detail of the export icon, the selection/comment-collection layout, the emergent multi-select UI"</td></tr>
+<tr><td class="nw">all 4 new ones</td><td class="warn nw">mediocre</td><td>"so-so" — none caught the eye</td></tr>
+</table></div>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>Mockups are not a one-shot job.</b> Of the 8 new items, only 2–3 met the human's bar — more than half were mediocre or below. The correct operation of this type is a structure that generates multiple candidates for a human to pick, and the mockup round is that structure by design.</li>
+<li><b>There is no model direction.</b> The one "best" was sonnet, the one "good" was opus, and both sides appear among the mediocre and rejected — nothing was observed to be lost by downgrading to sonnet, and run unit-cost is not the dominant factor either. So increasing the number of candidates on sonnet is rational.</li>
+<li><b>The adopted version doesn't always win either.</b> The adopted version — an opus output at the time — was the best on one task but got a not-adoptable verdict on another, and even a content defect nobody caught in practice surfaced in the blind re-check. Anonymous comparison verifies not just the deliverables but past choices too.</li>
+<li><b>Required condition: specify in the instruction "automatically capture the rendered screen and review it yourself."</b> This is a verification that opens the page in a headless browser and takes a screenshot; the class of bug that declares a style but never wires it can't be caught from source alone and requires looking at the rendered screen — indeed the rejected run stepped into this trap.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c6">
+<div class="ax">A+B LOAD · EMERGENT · MEASUREMENT: PILOT 96</div>
+<h3>⑥ Emergent implementation <span class="m o">opus</span> or <span class="m f">fable</span> <span class="cond">+ independent adversarial review before merge is mandatory</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Does the instruction give only the direction and the family of causes, leaving "the design details are your judgment"? Must the rules of several subsystems be honored simultaneously?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li>An implementation <b>with algorithm/protocol-level design judgment still remaining</b> — work where there's a reference direction but no correct design.</li>
+<li>Areas where the cost of a mistake is high, like synchronization, concurrency, and data integrity, are typical.</li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What the work was</b>: There was a defect where, when two people edit the same line simultaneously, one side's input gets erased. You need to build an algorithm that transforms the position of a remote change and merges it onto my not-yet-confirmed edit, and the instruction gave only the cause family and direction, saying "verify the current code directly, then judge the design yourself." There's the overlapping constraint that it must coexist without conflict with the resend / reconnect / server-sync rules.</li>
+<li><b>How it went in the original session</b>: The original implementation of this task was a fable run. Even that fable <b>built a critical defect into its first implementation</b>, and it was merged only after a pre-merge adversarial review caught it and it went through repair — i.e., "you can't trust a single implementation" is this card's conclusion, common to all three models including fable.</li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: There is no answer list in advance — it's an answer key whose confirmed-defect count is created after the fact.</li>
+<li><b>Model that produced it</b>: A cross-adjudication team (<span class="m o">opus</span> and <span class="m f">fable</span> each) found the defects, and major claims were confirmed only if they passed a separate disconfirming verification.</li>
+<li><b>Caution when comparing</b>: The original session implementation (<span class="m f">fable</span> at the time, 1 critical defect on the first pass then repaired via review) is a reference comparison, not the grading standard.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>Delegated to fable, opus, and sonnet twice each, 6 runs total. Automated grading was a build plus a full re-run of the existing tests — all passed.</li>
+<li>The quality layer was <b>cross-adjudication</b>: an opus panel and a fable panel each blind-adjudicated the same 6 deliverables, and major claims were admitted only if they passed disconfirming verification. This cross design produced an unexpected harvest — a gap between the panels.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>model</th><th style="white-space:nowrap">run</th><th>build · existing regression</th><th>self tests</th><th>confirmed merge-blocking defects</th><th>cost</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>✓ all pass</td><td>✓ all pass</td><td class="ok">0 — the only clean one (5 minor flaws)</td><td>$12.16</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>✓ all pass</td><td>✓ all pass</td><td class="bad">1 — transformed past a pending edit</td><td>$22.34</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>✓ all pass</td><td>✓ all pass</td><td class="bad">1 — permanent divergence on a specific edit order ＋ resurrection of the peer's edit</td><td>$17.50</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>✓ all pass</td><td>✓ all pass</td><td class="bad">1 — the merge applied only to the data structure, not the on-screen-editor path</td><td>$13.20</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>1</td><td>✓ all pass</td><td>✓ all pass</td><td class="ok">0 (3 minor flaws)</td><td>$42.65</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>2</td><td>✓ all pass</td><td>✓ all pass</td><td class="ok">0 — the grading panel's opus adjudicator built its own random replayer and ran 70,000 edit orders, yet found 0 divergences</td><td>$51.22</td></tr>
+</table></div>
+<p class="note"><b>Asymmetry-of-verification-depth footnote</b>: An adjudicator can build verification tools itself and has discretion over how far to dig, so not every candidate received 70,000-scale random verification — the three candidates with a defect had that defect confirmed by a replayer (positive evidence), and the two fable candidates are clean even under aggressive replay (negative evidence), but opus run 1's cleanness has no record of being attacked at the same intensity. Keep this in mind when reading the "fable 2/2 &gt; opus 1/2" ladder.</p>
+
+<dl class="kv"><dt>When and how good was fable — the measurement in the verification phase</dt>
+<dd><ul style="margin:4px 0">
+<li>In the implementation phase, fable is 2/2 clean as in the table above. Separately, the place where fable's ability showed most dramatically is <b>the verification phase</b>.</li>
+<li>The behavior of the two panels that adjudicated the original experiment's 4 candidates diverged. <b>The opus panel</b>: at the level of reading the code carefully and checking the existing tests — found <b>0</b> confirmed defects.</li>
+<li><b>The fable panel</b>: didn't stop at reading the code carefully but <b>invented and ran on the spot a verification harness</b> that randomly shuffles and replays the edit orders of the two clients. It ran 30,000 orders, reproduced 291 divergences, and confirmed the cause by seeing them drop to 0 after fixing one suspect line. By this method it found <b>all 3</b> confirmed defects.</li>
+<li>That is, fable's edge was not "reads the code better" but <b>"invents on its own what verification means it needs"</b> — the same mechanism as <a href="#c8">⑧ Discovery</a>, and the direct basis for entrusting the merge gate of emergent implementation to fable (<a href="#c9">⑨</a>).</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>3 of 6 runs built in a merge-blocking defect while passing all their own tests.</b> Self-written tests share one's own blind spot — hard evidence that you must not use "passes its own tests" as the completion criterion for emergent implementation.</li>
+<li><b>The model ladder was measured: fable clean 2/2 &gt; opus 1/2 &gt; sonnet 0/2.</b> The only model that passed this benchmark's decision rule (0 critical) is fable. But since the original session's fable first pass had a critical defect (a 6-run sample), fable is not always clean either — <b>keep the gate mandatory regardless of model</b>.</li>
+<li><b>There are two options</b>: for quality-first, fable + gate ($43–51 per run — about 3× opus); to save quota, opus + gate (on the premise that the gate catches criticals). Downgrading to sonnet is still not recommended, being 0/2 clean.</li>
+<li><b>It's the most expensive type</b> — $12–22 per run. And yet without the gate you're buying a defect with that money.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c7">
+<div class="ax">B EMERGENT (DIAGNOSIS) · MEASUREMENT: PHASE 2-1 118</div>
+<h3>⑦ Pure diagnosis / repair <span class="m o">opus</span>, <span class="m f">fable</span> if important <span class="cond">+ same gate mandatory</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is the bug's cause unconfirmed — at the hypothesis level — and must you do everything from diagnosis to repair yourself?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li><b>Whole-cloth delegation of diagnosis ＋ repair</b> for a bug that reproduces but whose cause is unknown.</li>
+<li>Boundary with <a href="#c2">②</a>: if the repair method is in the instruction it's ②, if not it's here.</li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What the work was</b>: There was a bug where, when you create a new page, it should navigate to that page but instead bounces to the home screen. The instruction gave only the hypothesis "a race entangled with screen-refresh timing is suspected," and nailed down even that hypothesis with "this is an estimate at review time, so re-verify it with code."</li>
+<li><b>A layered answer key</b>: In the original session this bug was fixed in two passes. The first repair — a fable run — merely blocked the one path where the problem occurred, and only after an independent review — an opus run — pointed out "it recurs via another path" did fable's re-repair reach a containment that doesn't recur via any path. So the grading scale is three-layer:
+<ul style="margin:2px 0">
+<li>Path repair — blocked only the one path where the problem occurred. The level of the original session's first repair.</li>
+<li>A third valid source repair — a different method from the answer, but blocks all currently reachable paths.</li>
+<li>Source containment — a structural repair that doesn't recur via any path.</li>
+</ul></li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: The 3-layer repair scale — path repair / third valid repair / source containment.</li>
+<li><b>Model that produced it</b>: Not a single output of a particular model but back-computed from the original session's event history — the first repair was <span class="m f">fable</span>, the "it recurs via another path" pointer was an <span class="m o">opus</span> review, and the source-containment re-repair was <span class="m f">fable</span> again.</li>
+<li><b>Caution when comparing</b>: Not a mechanical diff comparison but the panel judging by code-tracing "does this repair actually block the other paths too" — a third valid repair different from the answer is also admitted.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>Delegated to fable, opus, and sonnet twice each, 6 runs total. An opus panel and a fable panel judged, by code-tracing, the diagnosis level of each deliverable — down to surface race or down to the root of the recurrence structure — and the repair layer. Not a mechanical diff comparison but confirming per-path "does this repair actually block the other paths too."</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>model</th><th style="white-space:nowrap">run</th><th>diagnosis (2 adjudicators)</th><th>repair layer</th><th>critical defects</th><th>cost</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>root · surface</td><td>path repair — on par with the original session's first repair</td><td class="ok">0</td><td>$6.57</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td class="ok">root · root</td><td>third valid repair — blocks all currently reachable paths</td><td class="ok">0</td><td>$11.75</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td class="ok">root · root</td><td class="ok">top-tier of the 6 (tied with fable run 2) — one adjudicator judged it source containment, the other a third valid repair. Under either verdict it <b>surpasses the original session's first repair</b></td><td class="ok">0</td><td>$2.53</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>root · surface</td><td>path repair</td><td class="bad">1 — adopted the very approach the original session's design review had explicitly rejected (recurs via another path)</td><td>$5.70</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>1</td><td class="ok">root · root</td><td>third valid repair</td><td class="ok">0</td><td>$6.60</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>2</td><td class="ok">root · root</td><td class="ok">source-containment grade — one adjudicator's verdict (the other, third valid). Confirmed coverage of both paths by reproduction</td><td class="ok">0</td><td>$14.55</td></tr>
+</table></div>
+<p class="note">An interesting fact — both of the fresh single-run fable runs <b>surpassed the first repair (path-repair level) that fable itself produced in the original session</b>. The original session's first pass being shallow was more likely that day's variance than a model limit.</p>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>Looking only at the 4 opus·sonnet runs, the best is also sonnet and the only critical defect is also sonnet.</b> The best run went deeper than the original session's first repair, and the worst run stepped into an approach the original session had rejected — variance dominates the model gap in the diagnosis type too.</li>
+<li><b>The recommendation is opus, fable if important.</b> sonnet did not pass this benchmark's decision rule — no downgrade if even one critical defect appears. opus was a clean middle on both runs, and fable's 2/2 was root diagnosis ＋ at least a third valid repair — superior in both layer and cleanness.</li>
+<li><b>All 4 runs re-verified the hypothesis with measurement rather than blindly trusting it</b> — down to instrumenting directly to observe the 3-stage screen transition. Diligence of diagnosis was high regardless of model.</li>
+<li><b>For an important diagnosis, "the same model twice + gate selection" can be measurably more rational than "a higher model once"</b> — because the variance is large.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c8">
+<div class="ax">RESEARCH · WEB SEARCH (DISCOVERY) · MEASUREMENT: PHASE 2-2 138</div>
+<h3>⑧ Discovery-type research <span class="m o">opus or higher</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is finding "what's off the official list, what's hidden, what nobody has organized" the body of the value?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li>Research that digs out features, constraints, and workarounds not in the official docs from the community and experiments.</li>
+<li>It's often mixed inside the same task as <a href="#c4">④ Coverage type</a> — when writing the instruction, think of the two axes separately. The recommended model splits depending on which axis is the body.</li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li>Not a separate run — it's <b>the same 4 shortcut-research runs of <a href="#c4">④</a> measured with a different yardstick</b>. That instruction explicitly included the discovery axis: "find hidden shortcuts that the community reports but the official docs don't have, and mark them separately."</li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: There's no answer list in advance — the count of the hidden shortcuts each run found <b>whose source is actually confirmed</b> becomes the score after the fact.</li>
+<li><b>Model that produced it</b>: The grading standard itself is not a particular model's output (a post-hoc-verification type that verifies the source in the flesh per finding, with no answer list in advance). But <b>the run that actually performed this discovery in the original session is the same run as ④</b> — it started with <span class="m o">opus</span> at the time and continued into <span class="m f">fable</span>, and the 3 hidden shortcuts of ④'s confirmed matrix used for cross-checking are also that deliverable (reflecting 2 rounds of independent review).</li>
+<li><b>Caution when comparing</b>: For reference, ④'s confirmed matrix also carries 3 hidden shortcuts, used for cross-checking. And <b>fable was not measured for this type</b> — the fable supplementary runs were only in ⑥ (96) · ⑦ (118), and this research task (138) compared only opus · sonnet.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>A panel with model names hidden verified each run's discovery claims against the source in the flesh — official announcements, community docs — and counted only the valid ones.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>model</th><th style="white-space:nowrap">run</th><th>hidden shortcuts found</th><th>valid extra finds not even in the answer key</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>7</td><td>2</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td class="ok">9</td><td class="ok">5</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>3</td><td>1</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>2</td><td>1</td></tr>
+</table></div>
+<p class="note">Cost is the same run as ④, so see ④'s table. This is the clearest and most consistent model gap in the entire benchmark, opening up in both runs.</p>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>The ability to dig where specified is tied, but the ability to broaden where to dig on your own was consistently the higher model's edge.</b></li>
+<li><b>This gap cannot be corrected by the gate.</b> Review catches what's wrong, but review can't create a find that wasn't made — so for work where discovery is the body, don't economize on the model.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>Caution</dt><dd>Since there's only 1 measurement task, read it as a direction signal — but <a href="#c9">⑨</a>'s panel gap is the same mechanism, so they reinforce each other.</dd></dl>
+</div>
+
+<div class="card" id="c9">
+<div class="ax">GATE · MEASUREMENT: CROSS-ADJUDICATION OF 96·118 (NATURAL EXPERIMENT)</div>
+<h3>⑨ Adversarial review gate <span class="m f">keep fable</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion:</span> Is the role to "find defects and block" another leaf's deliverable before merge — an open deep review with no specified place to look?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When to use this type</dt>
+<dd><ul style="margin:4px 0">
+<li><b>The last checkpoint before merge</b> for emergent implementation and diagnostic repair. Since every "sonnet possible" verdict in this document presumes the gate's existence, the quality of the gate itself is the floor of the whole system.</li>
+<li>Boundary with <a href="#c1">①</a>: if a checklist is given it's ① and sonnet is fine. This is a review where you must decide where to dig on your own.</li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li>Not a designed replay but <b>a natural experiment created by the benchmark's own adjudication process</b> — the 4 implementation deliverables of <a href="#c6">⑥</a> and the 4 diagnosis deliverables of <a href="#c7">⑦</a> were blind-adjudicated <b>independently by</b> an opus panel and a fable panel. Since two panels saw the same targets, it becomes a direct comparison of adjudication ability.</li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li><b>What</b>: No answer in advance — the <b>set of confirmed defects</b> that combine the two panels' findings and pass disconfirming verification becomes the post-hoc standard, and how many of them each panel found is the score.</li>
+<li><b>Model that produced it</b>: None — confirmed after the fact by cross-finding + disconfirming verification.</li>
+<li><b>Caution when comparing</b>: Since it's a structure where the panels' own findings become the standard, a defect that both panels missed is outside the measurement — it measures only the lower bound of the gap.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>The two panels each adjudicated 4 candidates each with model names hidden, and merge-blocking claims were admitted only if they passed a separate disconfirming verification.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>panel</th><th>confirmed defects in ⑥ implementation (4)</th><th>behavior style</th><th>in ⑦ diagnosis (4)</th></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td class="ok">found all 3</td><td>invented a verification harness on the spot — 30,000 random replays of edit order, reproduced 291 divergences, confirmed 0 after a one-line fix</td><td>consistently stricter — accepted the diagnosis as root-level 2/4</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td class="bad">0</td><td>at the level of reading the code carefully and checking existing tests</td><td>more lenient (root accepted 4/4) — but the one that surfaced ⑦'s critical defect as a defect item was the opus adjudicator</td></tr>
+</table></div>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>The gap in open deep review is the gap in discovery</b> — the same mechanism as <a href="#c8">⑧</a>. The panels diverged on the ability to decide, on their own, what to suspect and what verification tools to build and run.</li>
+<li><b>Economize on the gate and the whole thing collapses.</b> Since the safety basis of every sonnet-downgrade row is "the gate catches it," the moment you lower the gate model, that premise disappears.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>Caution</dt><dd>It's a conservative status-quo where the whole basis is 1 implementation-adjudication task + the direction agreement of the diagnosis adjudication — the precise statement is not "opus must not be used" but "there is no basis to lower it." Checklist-type review (<a href="#c1">①</a>) is evidence in the opposite direction.</dd></dl>
+</div>
+
+<div class="card" id="c10" style="border-color:var(--bad)">
+<div class="ax">FORBIDDEN PATTERN · MEASUREMENT: 3-CONFIGURATION COMPARISON OF PHASE 2-2 138</div>
+<h3>⑩ Strategy/execution two-stage split <span class="m x">forbidden</span></h3>
+<div class="qbox"><span class="q">Discriminating criterion (pattern):</span> A two-stage construction where "the higher model designs only the research strategy — source list, search terms, list of files to scan in the code — and the lower model executes per that strategy."</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>When this pattern is tempting</dt>
+<dd><ul style="margin:4px 0">
+<li>The intuition "let the expensive model use only its head, and let the cheap model use its hands" — it comes from the rational motive of saving quota. It looks plausible but was rejected in measurement.</li>
+</ul></dd>
+
+<dt>The actual task used for measurement</dt>
+<dd><ul style="margin:4px 0">
+<li>Using <a href="#c4">④</a>'s shortcut-research task, three configurations were compared twice each: opus alone, sonnet alone, and the split configuration — opus writes a strategy document and sonnet takes over and executes.</li>
+</ul></dd>
+
+<dt>What the answer key is</dt>
+<dd><ul style="margin:4px 0">
+<li>Same as <a href="#c4">④</a> — coverage against the confirmed matrix of 49 items (review-reflected version), code re-verification of classifications, and the hidden-find count of <a href="#c8">⑧</a>.</li>
+</ul></dd>
+
+<dt>Test method</dt>
+<dd><ul style="margin:4px 0">
+<li>The 4 alone-configuration runs are the same runs as ④·⑧, and only the 2 split-configuration runs were newly run — comparing by summing the cost of the strategy stage and the execution stage.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>configuration</th><th style="white-space:nowrap">run</th><th>coverage (of 49)</th><th>classification re-verified</th><th>hidden finds</th><th>cost (2-stage summed)</th></tr>
+<tr><td class="nw">opus·sonnet alone (range over 4 runs)</td><td>—</td><td>41~47</td><td>mostly accurate</td><td>2~9</td><td>$3.69~5.21</td></tr>
+<tr><td style="white-space:nowrap"><span class="m x">split</span></td><td>1</td><td class="bad">32 — worst overall</td><td class="bad">11 of 16 — worst overall</td><td class="bad">0</td><td>$5.32</td></tr>
+<tr><td style="white-space:nowrap"><span class="m x">split</span></td><td>2</td><td>46</td><td>13 of 14</td><td class="bad">0</td><td>$10.47</td></tr>
+</table></div>
+
+<dl class="kv"><dt>Why it fails</dt><dd><ul style="margin:4px 0">
+<li><b>The strategy document becomes the ceiling of exploration.</b> Both runs had 0 hidden finds — the executor dug only where the strategy pointed, and unexpected finds outside the strategy vanished.</li>
+<li><b>A hole in the strategy becomes a hole in the result as-is.</b> Tracing the cause of the worst run, one core file was missing from the file list the strategy said to scan, and the executor never opened that file — 4–5 misclassifications cascaded from here. A file a single run would have found and gone into on its own.</li>
+<li><b>It's also more expensive.</b> Calling two models makes the summed cost higher than alone.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>Insight</dt><dd><ul style="margin:4px 0">
+<li><b>Core mechanism: research scope must be dynamically updated as the research results come in, and the split configuration blocks that — so performance drops.</b> Both failures above are this one mechanism: a find during execution should create "next I should look over there too" (hidden finds), but when the scope is fixed in a strategy document that update doesn't happen (0 finds), and a place missing from the strategy is never visited (core file unvisited → misclassification cascade).</li>
+<li><b>The alternative is a single well-written instruction.</b> A single delegation that carries the background and completion criteria while leaving "the details are your judgment after verifying the current state directly" was better than the 2-stage pipeline in both performance and cost — every measurement in this document was done on that form.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" style="background:var(--soft)">
+<h3 style="margin-top:0">Aside — what model for the main session? <span class="m f">keep fable</span> <span class="cond">(unmeasured — inferred from adjacent measurements)</span></h3>
+<ul style="margin:6px 0">
+<li>Every measurement in this document is at the leaf layer — there is no experiment directly comparing the main session's duties (decomposition, instruction-writing, orchestration, gate operation) across models. What follows is inference from adjacent measurements.</li>
+<li><b>The main session's duties are precisely the set of abilities where a higher-model gap was measured</b>: open deep adjudication (<a href="#c9">⑨</a> — fable 3 vs opus 0), discovery (<a href="#c8">⑧</a>), dynamic updating of research scope (<a href="#c10">⑩</a>'s core mechanism — the very judgment the main session performs constantly), checklist writing (the upstream of <a href="#c1">①</a>) and blast-radius judgment (<a href="#c3">③</a>).</li>
+<li><b>Consistent with the quota structure too</b>: The body of quota savings is pushing leaves out of fable (<a href="#s2">§2</a>), and the use for the Fable quota saved that way is the main session. If you push down the leaves and lower the main too, there's nowhere to spend the saved quota.</li>
+<li><b>Warning signal</b>: The closest proxy measurement for "opus main session" is ⑨'s opus panel, which caught 0 of 4 confirmed defects. If Fable's quota is short, route leaves more thoroughly rather than lowering the main.</li>
+</ul>
+</div>
+
+<h2 id="s4">4. Cost / Quota Efficiency, Measured</h2>
+<h3>Model totals (16 matched task pairs)</h3>
+<div class="tblwrap"><table>
+<tr><th></th><th>total cost</th><th>avg turns</th><th>list-price ratio</th><th>realized-cost ratio</th></tr>
+<tr><td><span class="m o">opus</span> 16 runs</td><td>$104.85</td><td>34 turns</td><td rowspan="2" style="vertical-align:middle">1.67×</td><td rowspan="2" style="vertical-align:middle"><b>1.13×</b></td></tr>
+<tr><td><span class="m s">sonnet</span> 16 runs</td><td>$93.01</td><td>59 turns</td></tr>
+</table></div>
+<p><b>Key: sonnet is not cheaper by as much as the list price.</b> Because it spends on average 1.7× the turns on the same task (e.g., in emergent implementation opus 82 turns vs sonnet 155 turns). If dollar reduction is the goal, there's effectively no benefit to downgrading. <span class="small">(Point estimate — since the same model's run-to-run variance exceeds the between-model gap, the ± is wide. E.g., on the same task opus r1 $12.16 / r2 $22.34.)</span></p>
+<h3>Per-task measurements (model totals, 2 reps)</h3>
+<div class="tblwrap"><table>
+<tr><th>task (type)</th><th>opus</th><th>sonnet</th><th>note</th></tr>
+<tr><td>132 perspective-specified review ①</td><td>$5.23</td><td>$5.97</td><td>both the cheapest type (~$3 per run)</td></tr>
+<tr><td>62 plan ③</td><td>$6.66</td><td>$7.52</td><td></td></tr>
+<tr><td>77·114 design ⑤</td><td>$14.61</td><td>$15.28</td><td>$3–4 per run</td></tr>
+<tr><td>138 research ④⑧</td><td>$8.00</td><td>$9.16</td><td>split is $15.79 — highest cost + lowest performance</td></tr>
+<tr><td>151 method-specified repair ②</td><td>$17.53</td><td>$16.15</td><td></td></tr>
+<tr><td>118 pure diagnosis ⑦</td><td>$18.32</td><td>$8.23</td><td>sonnet under half — but 1 critical defect</td></tr>
+<tr><td>96 emergent implementation ⑥</td><td>$34.50</td><td>$30.70</td><td>most expensive type ($12–22 per run)</td></tr>
+</table></div>
+<h3>The value of using fable on a leaf</h3>
+<p>fable's measured run unit-cost: diagnosis task $6.60·$14.55 (similar to opus), <b>emergent implementation task $42.65·$51.22 — about 3× opus, about 3× sonnet</b>. Read together with the quality ladder (⑥⑦ above): on emergent/diagnostic leaves, fable is the "expensive but measured-highest clean-rate" option, and whether it's worth it is set by the task's blast radius and the quota situation.</p>
+<h3>Quota efficiency — the real benefit of downgrading</h3>
+<ul>
+<li>Quota structure: <b>only Fable has a separate model quota</b>; opus/sonnet share the weekly and session quota. → moving to sonnet = 0 consumption of the Fable/Opus quota.</li>
+<li>Based on the original session's 158 dispatches, the types that can be downgraded to sonnet (<a href="#c1">①</a>–<a href="#c5">⑤</a>) = <b>at least ~40%, around half if method-specified implementation is included</b> (estimate label).</li>
+<li>But an operational trap: a sub-agent <code>model:</code> override is <b>not inherited on resume/notification-wakeup turns</b> — it leaks to the session default model (original session measurement: 22 of 23 mixed cases were this mechanism; the remaining 1 is consistent with the Fable-only quota). For long-running leaves that resume often, the routing effect is diluted, so if model pinning matters, headless execution is the sure thing.</li>
+</ul>
+
+<h2 id="s5">5. Five Principles + Three Operational Traps</h2>
+<div class="principle"><span class="t">1. The gate, not model choice, creates the discrimination.</span><br>All 6 real incidents (3 emergent · 1 diagnosis · 1 plan · 1 design-wiring bug) occurred on a 1-pass regardless of model, and all were caught by independent verification (panel · human blind). "Should I upgrade to opus" comes second to "is this deliverable under independent review."</div>
+<div class="principle"><span class="t">2. A green on your own tests guarantees nothing.</span><br>All 3 emergent-implementation runs that built in a MAJOR passed all their own tests. A self-made oracle shares its own blind spot — do not write "passes its own tests" as the completion criterion of an emergent leaf.</div>
+<div class="principle"><span class="t">3. The same model's run-to-run variance exceeds the between-model gap.</span><br>The same model produced the best and the worst on the same task (diagnosis · review · design), and even the version adopted in practice went 1 win / 1 reject in blind. For an important leaf, "the same model twice + gate selection" can be more rational than "a higher model once."</div>
+<div class="principle"><span class="t">4. Strategy is a judgment updated during execution — don't split it off.</span><br>Pre-injecting strategy (⑩) became the ceiling of exploration and killed discovery. Instead, giving "verify the current state directly, then the details are your judgment" in a self-contained instruction is the form validated in both the original session and this benchmark.</div>
+<div class="principle"><span class="t">5. Discovery ability alone is a real model gap.</span><br>Digging where specified is tied, but broadening where to dig on your own (discovering hidden shortcuts · inventing a fuzz harness) was consistently opus·fable's edge. Do not economize on a leaf where discovery is the body of the value.</div>
+<h3>Operational traps</h3>
+<ul>
+<li><b>Resume non-inheritance</b>: a <code>model:</code> override applies only to the initial spawn — background-notification and SendMessage resume turns leak to the session model.</li>
+<li><b>Non-interactive environment difference</b>: pin the environment (node version, etc.) explicitly in grading/verification scripts (a real case where the same command ran on a different version depending on the shell type due to nvm's lazy shim).</li>
+<li><b>Concurrent-startup write races</b>: if several runs read-modify-write a shared file (key, log), it gets lost — per-run files are the canonical version.</li>
+</ul>
+
+<h2 id="s6">6. Confidence Labels and Sources</h2>
+<ul class="small">
+<li><b>2 runs per task·model</b> — every verdict is designed to trust only "presence of a critical defect + a large gap." Fine rankings are buried in rep variance.</li>
+<li><b>Quality-verdict authority</b> = a verifying LLM panel (label-blind · absolute scoring · disconfirming verification of every MAJOR · cross-judgment) + human blind for design only. The LLM judge's family bias is mitigated but may remain.</li>
+<li><b>Scope of applicability</b> = self-contained leaves for which Fable wrote a good prompt. A one-line instruction with no hints or completion criteria is outside this table's guarantee.</li>
+<li><b>Unmeasured</b>: long-run completion (the F axis — could not change existing verdicts, natural-experiment substitute recommended), document tidying (weak discrimination).</li>
+<li><b>Physical location of answer keys / adopted versions</b> — The answer keys, adopted baselines, and original diffs referenced here live in the benchmark repository. What each anchor is:
+<ul style="margin:2px 0">
+<li>① Review: the confirmed defect list and grading rules. The full original review is the anchor final message, and the proof of reality is the burst2 repair commit.</li>
+<li>② Repair: the 3 answer outputs were generated at grading time from the pre-fix code. The original repair is the anchor fix diff.</li>
+<li>③ Plan: the source of the 4 traps is burst2's implementation and review history, and the full adopted plan is the anchor plan document.</li>
+<li>④ Research: the full confirmed matrix — the burst2 document as-is.</li>
+<li>⑤ Design: copies of the adopted versions — hash-matched with the burst2 originals.</li>
+<li>⑥ Implementation: detailed evidence of the confirmed defects is the raw adjudication data, and the original session implementation is the anchor fix diff.</li>
+<li>⑦ Diagnosis: the layer definitions, and the 2 layer-standard actual diffs (the L2 repair and the L3 source-containment).</li>
+</ul></li>
+<li>Basis documents: the task inventory · pilot 16-run results · quality-panel routing (the canonical routing table) · B-axis 118 results · Phase 2-2 design/research — all in the benchmark repository. Reflecting a cumulative 10 rounds of independent review · 55 findings (22+12+9+5+7).</li>
+</ul>
+
+</div>
+
+<script>
+document.addEventListener('click', function (e) {
+  var a = e.target.closest('a[href^="#"]');
+  if (!a) return;
+  var el = document.getElementById(a.getAttribute('href').slice(1));
+  if (!el) return;
+  e.preventDefault();
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+</script>

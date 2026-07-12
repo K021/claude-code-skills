@@ -1,0 +1,25 @@
+{
+  "name": "model-routing",
+  "displayName": "Model Routing (leaf-*)",
+  "version": "1.0.0",
+  "description": "Route sub-agent (leaf) tasks to the right model by task type — measured on a real app build. Ships nine leaf-* agents (executor work → low tier, emergent/diagnosis → mid tier, gate/discovery → top tier) that auto-delegate by description, plus an /apply command that adds the routing gate to your CLAUDE.md. Stops every delegation from silently burning your priciest tier.",
+  "author": {
+    "name": "Jooeon Kim"
+  },
+  "homepage": "https://github.com/K021/agent-harness/tree/main/agents/model-routing",
+  "repository": "https://github.com/K021/agent-harness",
+  "license": "MIT",
+  "keywords": ["subagents", "agents", "routing", "model-selection", "cost", "quota"],
+  "agents": [
+    "./agents/leaf-checklist-review.md",
+    "./agents/leaf-oracle-repair.md",
+    "./agents/leaf-plan-draft.md",
+    "./agents/leaf-coverage-research.md",
+    "./agents/leaf-design-mockup.md",
+    "./agents/leaf-emergent-impl.md",
+    "./agents/leaf-diagnose-repair.md",
+    "./agents/leaf-discovery-research.md",
+    "./agents/leaf-adversarial-gate.md"
+  ],
+  "commands": "./commands/"
+}

@@ -1,0 +1,776 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaf 라우팅 가이드 — 유형·모델·비용 실측 비교</title>
+<style>
+:root{
+  --bg:#FAFAF7; --panel:#FFFFFF; --ink:#22262B; --muted:#6E6A64; --line:#E4E1DA;
+  --link:#0F766E; --soft:#F1EFE9;
+  --fable:#3F3D8F; --opus:#98530F; --sonnet:#0E7468;
+  --fable-bg:#EDEDF8; --opus-bg:#F7EEDF; --sonnet-bg:#E4F2EF;
+  --ok:#116329; --warn:#B54708; --bad:#B42318;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#141619; --panel:#1C1F23; --ink:#E8E6E1; --muted:#9B968E; --line:#31353B;
+    --link:#3CBDAF; --soft:#22252B;
+    --fable:#A5A3E8; --opus:#E0A468; --sonnet:#54C4B4;
+    --fable-bg:#26264a; --opus-bg:#3a2c17; --sonnet-bg:#173832;
+    --ok:#6FC08A; --warn:#D99A4E; --bad:#E5776A;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.75 Pretendard,'Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;}
+.wrap{max-width:900px;margin:0 auto;padding:48px 28px 80px}
+h1{font-size:30px;line-height:1.3;letter-spacing:-.02em;margin:0 0 6px;text-wrap:balance}
+h2{font-size:21px;letter-spacing:-.01em;margin:2.6em 0 .5em;padding-top:1em;border-top:1px solid var(--line);text-wrap:balance}
+h3{font-size:16.5px;margin:1.6em 0 .4em}
+p{margin:.55em 0;max-width:72ch}
+.lede{font-size:17px;color:var(--muted);max-width:66ch}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px}
+.chip{font:600 12px var(--mono);letter-spacing:.03em;padding:4px 12px;border:1px solid var(--line);border-radius:14px;color:var(--muted);background:var(--panel)}
+a{color:var(--link)}
+table{border-collapse:collapse;font-size:14px;margin:.8em 0;font-variant-numeric:tabular-nums}
+.tblwrap{overflow-x:auto;margin:.8em 0}
+th{font-size:12.5px;letter-spacing:.04em;color:var(--muted);text-align:left;font-weight:700}
+th,td{border-bottom:1px solid var(--line);padding:8px 14px 8px 0;vertical-align:top}
+td:last-child,th:last-child{padding-right:0}
+.b{font-weight:700}
+.m{font:600 12.5px var(--mono);padding:2px 9px;border-radius:5px;white-space:nowrap}
+.m.f{color:var(--fable);background:var(--fable-bg)}
+.m.o{color:var(--opus);background:var(--opus-bg)}
+.m.s{color:var(--sonnet);background:var(--sonnet-bg)}
+.m.x{color:var(--bad);background:transparent;border:1px solid var(--bad)}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:22px 26px;margin:18px 0}
+.card h3{margin:0 0 2px;font-size:17px}
+.card .ax{font:700 11.5px var(--mono);letter-spacing:.07em;color:var(--muted)}
+.qbox{background:var(--soft);border-radius:8px;padding:10px 16px;margin:10px 0;font-size:14.5px}
+.qbox .q{font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 26px;margin:10px 0}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.kv{font-size:14px}
+.kv dt{font-size:12px;letter-spacing:.05em;color:var(--muted);font-weight:700;margin-top:8px}
+.kv dd{margin:1px 0 0}
+.verdict{display:flex;align-items:baseline;gap:10px;margin:12px 0 2px;padding-top:12px;border-top:1px dashed var(--line);flex-wrap:wrap}
+.verdict .lab{font-size:12px;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.cond{font-size:13.5px;color:var(--warn)}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+.note{font-size:13.5px;color:var(--muted)}
+.principle{margin:14px 0;padding-left:18px;border-left:3px solid var(--line)}
+.principle .t{font-weight:700}
+ul{padding-left:1.3em;max-width:74ch} li{margin:.3em 0}
+.small{font-size:13px;color:var(--muted)}
+.toc{font-size:13.5px;columns:2;column-gap:40px;margin:14px 0;padding:14px 20px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.toc a{text-decoration:none;display:block;padding:2px 0;color:var(--ink)}
+.toc a:hover{color:var(--link)}
+@media(max-width:640px){.toc{columns:1}}
+code{font-family:var(--mono);font-size:.86em;background:var(--soft);padding:1px 5px;border-radius:4px}
+.hero-table td{font-size:14.5px}
+.nw{white-space:nowrap}
+td.why{min-width:280px}
+</style>
+
+<div class="wrap">
+
+<h1>Leaf 라우팅 가이드 — 어떤 일을 어느 모델에 내리나</h1>
+<p class="lede">실프로젝트(burst2 노트앱)의 sub-agent 태스크 8종을 그대로 리플레이해 fable·opus·sonnet을 같은 조건에서 비교하고, 원 세션 산출물과 대조한 결과. 38회 실행·3층 채점(자동 오라클 → 검증형 LLM 패널 → 사람 블라인드)·독립 검토 10회를 거친 결론이다.</p>
+<div class="meta">
+  <span class="chip">2026-07-10 ~ 07-12</span><span class="chip">38회 실행 · $328.67</span>
+  <span class="chip">8태스크 · 158건 인벤토리에서 선별</span><span class="chip">치명적 결함 6건 전부 게이트가 검출</span>
+</div>
+
+<div class="toc">
+  <a href="#s1">1. 한눈 요약 — 라우팅 표</a>
+  <a href="#s2">2. 먼저 정할 것 — 비용 프레임</a>
+  <a href="#s3">3. 유형 정의와 판정 (10종)</a>
+  <a href="#s4">4. 비용·쿼터 효율 실측</a>
+  <a href="#s5">5. 원리 5 + 운영 함정 3</a>
+  <a href="#s6">6. 신뢰도 라벨과 출처</a>
+</div>
+
+
+<div class="card" style="background:var(--soft)">
+<h3 style="margin-top:0">이 문서의 용어</h3>
+<div class="grid2"><dl class="kv">
+<dt>leaf</dt><dd>메인 AI 세션(Fable)이 하위 AI에게 통째로 위임하는 작업 단위. 배경·완료조건이 담긴 지시문 하나를 받아 독립적으로 수행하고 결과만 반환한다.</dd>
+<dt>실행</dt><dd>한 leaf 지시문을 한 모델에게 1회 수행시킨 것. 이 벤치는 같은 지시문을 모델마다 <b>2회씩 반복 실행</b>했다(1회차/2회차) — 같은 모델도 실행마다 결과가 달라지므로(실행 간 편차), 우열은 "치명적 결함 유무 + 큰 격차"만 신뢰한다.</dd>
+<dt>gold (정답지)</dt><dd>원 프로젝트에서 그 태스크가 실제로 수행됐을 때의 확정 결과 — 예: 리뷰가 발견했고 이후 수리 커밋으로 실재가 증명된 결함 목록. 신규 실행을 채점하는 기준. <b>정답지가 어떤 모델·과정에서 나왔는지는 카드마다 표기한다</b> — 검토를 거친 개선본과 1회 실행을 직접 비교하면 불공정하기 때문.</dd>
+</dl><dl class="kv">
+<dt>오라클</dt><dd>사람 판단 없이 기계가 O/X를 내는 자동 채점(테스트 실행·바이트 대조 등).</dd>
+<dt>패널</dt><dd>품질을 판정한 검증형 LLM 심사 — 모델명을 가린 채(블라인드) 산출물별 결함을 찾고, 중대 주장은 별도 반증 검증을 통과한 것만 인정.</dd>
+<dt>치명적 결함(MAJOR) / minor</dt><dd>치명적 결함 = 병합을 막아야 할 급 — 오진, 데이터 손상, 보안. minor = 고치면 좋은 흠.</dd>
+<dt>게이트</dt><dd>산출물이 병합·채택되기 전 거치는 독립 검증 관문(적대 리뷰·오라클·사람 선택).</dd>
+</dl></div>
+</div>
+
+<h2 id="s1">1. 한눈 요약 — 라우팅 표</h2>
+<p>전제: <b>Fable(메인 세션)이 분해·프롬프트 작성을 계속하고, leaf 실행만 내리는 구조</b>. 프롬프트는 self-contained — 배경과 완료조건, 그리고 현재 코드를 직접 확인하라는 지시까지 담겨 — 잘 쓰여 있다고 가정한다 — 이 전제가 깨지면(맥락 없는 한 줄 지시) 아래 표는 보증되지 않는다.</p>
+<div class="tblwrap"><table class="hero-table">
+<tr><th>leaf 유형</th><th>권장 모델</th><th>필수 조건</th><th>핵심 근거</th></tr>
+<tr><td><a href="#c1" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">① 관점 지정 리뷰</a></td><td><span class="m s">sonnet</span></td><td>기준(gold·체크리스트) 명시</td><td>recall 4/4 동률·치명적 결함 0</td></tr>
+<tr><td><a href="#c2" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">② 방법 지정 수리·리팩터링</a></td><td><span class="m s">sonnet</span></td><td>오라클(테스트·대조) 동봉</td><td>오라클 만점 + 결함 0 (opus는 minor 2·2)</td></tr>
+<tr><td><a href="#c3" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">③ 계획 문서 초안</a></td><td><span class="m s">sonnet</span></td><td>검토 강도는 파급이 정한다 — 생략 / opus 독립검토 / fable 심층검토</td><td>치명적 결함 sonnet 0 vs opus 1</td></tr>
+<tr><td><a href="#c4" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">④ 커버리지형 조사</a></td><td><span class="m s">sonnet</span></td><td>대조 기준 명시</td><td>커버 47/49 최고·치명적 결함 0</td></tr>
+<tr><td><a href="#c5" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑤ 디자인 시안</a></td><td><span class="m s">sonnet</span></td><td><b>렌더 화면 자동 캡처 검토 명시</b></td><td>사람 블라인드 최고 1회·치명적 결함 0</td></tr>
+<tr><td><a href="#c6" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑥ 창발 구현</a></td><td><span class="m o">opus</span> 또는 <span class="m f">fable</span></td><td><b>병합 전 독립 적대 리뷰 의무</b></td><td>무결: fable 2/2 · opus 1/2 · sonnet 0/2 — 게이트는 모델 불문 필수</td></tr>
+<tr><td><a href="#c7" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑦ 순수 진단·수리</a></td><td><span class="m o">opus</span>, 중요하면 <span class="m f">fable</span></td><td>동일 게이트 의무</td><td>fable 2/2 근본+무결 · opus 무결 중간 · sonnet 치명 1회</td></tr>
+<tr><td><a href="#c8" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑧ 발굴형 조사</a></td><td><span class="m o">opus 이상</span></td><td>—</td><td>숨은 발견 7·9 vs 3·2 — 가장 뚜렷한 격차</td></tr>
+<tr><td><a href="#c9" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑨ 적대 리뷰 게이트</a></td><td><span class="m f">fable 유지</span></td><td>—</td><td>동일 후보에서 fable 3 MAJOR vs opus 0</td></tr>
+<tr><td><a href="#c10" style="text-decoration:none;color:inherit;border-bottom:1px dotted var(--muted)">⑩ 전략/실행 2단 분리</a></td><td><span class="m x">금지</span></td><td>—</td><td>발굴 소멸(0건)·최악 실행 위험·비용↑</td></tr>
+</table></div>
+
+<h2 id="s2">2. 먼저 정할 것 — 비용 프레임</h2>
+<p>위 표의 "sonnet ↓"가 이득이 되는지는 <b>무엇을 아끼려는지</b>에 달려 있다. 실측이 가른 두 프레임:</p>
+<h3>프레임 A — 달러(API 비용)를 아끼려면: <span class="bad">강등의 이득이 관측되지 않았다</span></h3>
+<p>list 단가는 opus:sonnet = 1.67× 차이지만, <b>실현 실행 비용은 1.13× 차이뿐</b>(동일 태스크 16쌍: opus $104.85 vs sonnet $93.01). sonnet이 같은 일에 턴을 평균 1.7배(34턴 vs 59턴) 쓰기 때문에 단가 차이가 상쇄된다. 달러 프레임에선 현행 유지가 답이고, 이 벤치의 유일한 실행 함의는 "창발 leaf에 게이트 의무화"뿐이다.</p>
+<h3>프레임 B — 사용량 한도(quota)를 아끼려면: <span class="ok">이득은 있지만, 흔히 생각하는 곳에 있지 않다</span></h3>
+<ul>
+<li><b>한도의 구조</b>: 별도 모델 한도는 Fable에만 있고, 주간·세션 한도는 전 모델 공통이다. 단 공통 한도는 <b>모델 가중으로 소모</b>된다 — 같은 작업이라도 비싼 모델이 한도를 더 빨리 깎는다(가중 계수는 미공개, 단가 비례로 추정).</li>
+<li><b>opus → sonnet 강등의 한도 이점은 미미하다.</b> 가중이 단가에 비례한다면 한도 소모비 ≈ 실현 비용비 = 1.13× — 약 10% 절약에 그친다. sonnet이 같은 일에 토큰을 1.7배 쓰기 때문이다(프레임 A와 같은 이유).</li>
+<li><b>실질 이득은 "fable이 하던 leaf를 fable 밖으로 내리는 것" 그 자체다.</b> leaf 디스패치의 기본값은 세션 모델(fable)이라, 지정하지 않으면 leaf 전부가 Fable 별도 한도를 소모한다. 원 세션 디스패치 158건 기준 sonnet/opus로 내릴 수 있는 유형(<a href="#c1">①</a>~<a href="#c5">⑤</a>)은 최소 약 40% — 이만큼의 Fable 한도가 통째로 보존된다.</li>
+<li><b>내린 다음 opus냐 sonnet이냐는 한도 관점에선 거의 무차별</b> — 품질·안정성 실측(각 카드)으로 정하라. 이 문서의 "sonnet" 권장은 한도 절약이 아니라 "밀리지 않음이 실측됐고 미세하게 저렴"이 근거다.</li>
+</ul>
+<h2 id="s3">3. 유형 정의와 판정</h2>
+<p>각 유형의 <b>구분 기준</b> 질문에 "예"면 그 유형이다. 위에서부터 순서대로 검사해 먼저 걸리는 유형을 적용한다(창발·진단이 섞이면 보수적인 쪽 우선).</p>
+
+<div class="card" id="c1">
+<div class="ax">D 오류 검출 · 측정: 파일럿 132</div>
+<h3>① 관점 지정 리뷰 <span class="m s">sonnet</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 리뷰 지시문에 "무엇을 어느 관점으로 볼지"의 체크리스트가 들어 있는가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li><b>병합 직전의 게이트 리뷰</b>(대표) — 원 프로젝트에서는 기능 하나가 끝날 때마다 "이 diff를 프라이버시/성능/테스트 실효성 관점으로 검토하라"는 병합 전 적대 리뷰가 관행이었다. 측정 표본도 전부 이 패턴.</li>
+<li>보안·프라이버시가 걸린 변경의 지정 관점 검토.</li>
+<li>계획·문서를 완료조건 목록과 대조하는 검증.</li>
+<li>체크리스트는 <b>위임하는 메인 세션이 병합 직전에 작성해 부여</b>한다:
+<ul style="margin:2px 0">
+<li>"어디가 위험한지 짚는" 일 자체는 발굴형 판단(<a href="#c8">⑧</a>)이라, 상위 모델 몫으로 남기는 게 이 벤치의 다른 측정과 정합한다.</li>
+<li>단 체크리스트 작성 능력은 이번에 직접 측정하지 않았다 — 측정이 아니라 추론임을 밝혀둔다.</li>
+</ul></li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li><b>작업 내용</b>: 노트를 공개용 웹 URL로 배포하는 기능을 만드는 과정에서, 그 페이지에 "하위 항목 수를 표시하는 배지"를 추가하는 코드가 들어왔다. 이 코드의 정합성을 병합 전에 리뷰하는 작업이다.</li>
+<li><b>관점 지정</b>: 프라이버시 누설, 정확성·성능, 테스트 실효성 — 세 관점의 체크리스트를 부여받았다.</li>
+<li><b>정답지가 존재</b>: 이 코드에는 병합 차단급 결함이 숨어 있다 — 정체는 아래 "정답지의 정체"에. 배지 숫자를 세는 코드가 항목마다 하위 트리를 처음부터 다시 세어 연산량이 항목 수의 제곱으로 폭발하고, 이 페이지는 로그인 없이 누구나 접근할 수 있어 서비스 마비 공격의 통로가 된다.</li>
+<li><b>채점 기준</b>: 이 결함을 스스로 찾아내는가.</li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 병합 차단급 결함 1건 — 연산 폭발로 인한 서비스 마비 통로 — 의 확정 목록.</li>
+<li><b>만든 모델</b>: 당시 <span class="m o">opus</span> 단독 실행의 리뷰가 발견.</li>
+<li><b>거친 과정</b>: 그 발견이 실제 수리 커밋으로 이어져 결함의 실재가 증명됨 — 누군가의 의견이 아니라 확정 사실.</li>
+<li><b>비교 시 주의</b>: 발견 여부만 정답이 있고, 보고서 품질에는 정답이 없어 블라인드 심사로 별도 판정.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>같은 리뷰 지시문을 opus와 sonnet에 각 2회씩, 총 4회 위임.</li>
+<li>각 실행은 <b>1회 위임</b>이다 — 중간 개입 없이 지시문 하나로 완주. 다만 지시문이 관점당 1라운드씩 <b>3라운드</b>를 규정하고 "라운드마다 diff·소스 재독, 관점당 발견 소진까지"를 요구하므로, 내부적으로는 다회 라운드 리뷰다. 4회 실행 모두 3라운드 완주를 보고서에 명시했다.</li>
+<li>채점은 2층이다. 1층은 정답 결함을 포착했는가 — 정답지와 대조하는 기계적 판정. 2층은 리뷰 보고서 자체의 품질 — 모델명을 가린 블라인드 패널이 보고서에서 오탐·부정확 서술·과장 같은 흠을 찾는다.</li>
+<li>네 실행 모두 결함 주장을 말로만 하지 않고 스스로 실증했다: 전체 테스트 스위트 실행, 성능 벤치마크, 그리고 <b>뮤테이션 테스트</b> — 프라이버시 필터를 제거하는 식으로 코드에 일부러 결함을 심고, 기존 테스트가 FAIL로 바뀌는지 확인하는 기법. 안 바뀌면 그 테스트는 장식이다. 이걸로 "diff에 딸린 테스트가 공허하지 않음"을 증명.</li>
+</ul></dd>
+</dl>
+
+
+
+<div class="tblwrap"><table>
+<tr><th>모델</th><th style="white-space:nowrap">회차</th><th>정답 결함 포착</th><th>스스로 한 실증</th><th>패널 지적<sup>*</sup></th><th>비용</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>✓ 정확</td><td>테스트 스위트 + 뮤테이션 2종 + 성능 마이크로벤치</td><td class="ok">0건 — 가장 깨끗</td><td>$2.39</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>✓ 정확</td><td>빌드 + 스위트 + 뮤테이션 2종</td><td class="warn">3건 — 가장 지저분</td><td>$2.84</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>✓ 정확 <span class="small">+ 별개의 기존 결함을 발견하고 "이 변경 탓 아님"까지 원본 대조로 정확히 판별</span></td><td>수정 전후 A/B 벤치로 제곱 폭발 실측(2.7×→6.6×)</td><td>1건</td><td>$3.37</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>✓ 정확</td><td>격리 재현 벤치(항목 16,000개에서 8.3초 실측)</td><td>2건</td><td>$2.60</td></tr>
+</table></div>
+<p class="note"><sup>*</sup>패널 지적 = 블라인드 심사가 <b>리뷰 보고서 자체</b>에서 찾은 흠의 수(존재하지 않는 결함 주장, 부정확한 파일·수치 인용, 과장 등 — 전부 minor급, 치명 0).</p>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>관점 지정 리뷰는 sonnet으로 충분하다.</b> 4회 실행 전부 정답을 잡았고 실증 밀도도 대등 — "어디를 볼지"가 체크리스트로 상류에서 끝나 있으면 남는 일은 지정된 곳을 끝까지 파는 실행이고, 여기서 두 모델은 구분되지 않았다.</li>
+<li><b>좋은 모델 1회보다 리뷰 2회가 낫다.</b> 가장 깨끗한 보고서와 가장 지저분한 보고서가 <b>같은 모델(opus)</b>에서 나왔다 — 같은 모델의 실행 간 편차가 모델 간 차보다 크다.</li>
+<li><b>sonnet이 금액 관점에서 저렴하지도 않다.</b> 이 태스크 2회 합계 opus $5.23 vs sonnet $5.97 — 강등의 실익은 금액이 아니라 상위 모델 사용량 한도 절약이다(<a href="#s2">§2</a>).</li>
+<li><b>체크리스트 작성은 계속 상위 모델 몫.</b> 리뷰 실행은 내려도, "어디가 위험한지 짚는" 상류 판단은 발굴형 능력이라 아끼면 안 된다.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>주의</dt><dd>체크리스트가 <b>없는</b> 열린 심층 리뷰는 <a href="#c9">⑨ 적대 리뷰 게이트</a>로 취급 — "어디를 팔지 스스로 발명"하는 전혀 다른 능력이고, 거기선 상위 모델 격차가 실재했다.</dd></dl>
+</div>
+
+<div class="card" id="c2">
+<div class="ax">E 정밀 제약 실행 · 측정: 파일럿 151</div>
+<h3>② 방법 지정 수리·리팩터링 <span class="m s">sonnet</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> "무엇을 어떻게 고칠지"가 지시문에 이미 있고, 고쳤는지를 기계가 판정할 수단 — 오라클 — 이 함께 주어지는가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li><b>원인과 수리 방법이 이미 합의된 버그</b>의 실행 위임 — 진단은 끝났고 고치는 일만 남은 경우.</li>
+<li><b>동작을 보존해야 하는 리팩터링</b> — 구조 전환, 모듈 분리, 성능 개선처럼 "겉보기 결과는 그대로"가 요구되는 작업.</li>
+<li>오라클 동봉이 이 유형의 <b>성립 조건</b>이다. 테스트·출력 대조 같은 판정 수단 없이 "알아서 고쳐"가 되는 순간 <a href="#c7">⑦ 순수 진단·수리</a>로 격상되고, 권장 모델과 안전장치가 달라진다.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li><b>작업 내용</b>: 노트를 공개용 웹 URL로 배포하는 발행 기능의 서버 코드에는, 페이지를 그리는 두 함수가 서로를 재귀 호출하는 구조가 있었다. 항목이 1,900단 넘게 중첩된 문서를 만나면 호출이 너무 깊어져 서버 전체가 죽는다 — 로그인 없이 접근되는 URL이라 요청 한 번으로 서버를 죽일 수 있는 문제다.</li>
+<li><b>방법 지정</b>: 수리 방법이 지시문에 이미 있다 — 재귀를 반복문 구조로 바꿔라. 단, 페이지의 렌더 결과가 <b>바이트 하나까지 이전과 동일</b>해야 한다. 동작 변경이 아니라 구조만 바꾸는 리팩터링이기 때문이다.</li>
+<li><b>채점 기준</b>: 깊은 문서에서 크래시가 사라졌는가, 그리고 출력이 완전히 동일한가.</li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>왜 "수리 전 코드의 출력"이 정답인가</b>: 언뜻 역설 같다 — 버그가 있는 코드의 출력이 어떻게 정답인가? 이 작업의 요구가 "크래시만 없애고, 페이지가 그려지는 결과는 이전과 완전히 같게"이기 때문이다. 수리 전 코드의 결함은 아주 깊게 중첩된 문서에서 죽는다는 것 하나뿐이고, <b>보통 문서는 올바르게 그린다</b>. 그래서 보통 문서에서 뽑은 출력은 그대로 정답이 되고, 수리 후 코드가 같은 문서에서 글자 하나까지 같은 결과를 내면 합격이다.</li>
+<li><b>무엇</b>: 그렇게 뽑은 문서 3종 — 공유 항목이 있는 문서, 1,800단 문서, 서식 있는 문서 — 의 출력. 여기에 별도 기준 하나: 수리 전 코드가 죽던 3,000단 문서에서 <b>수리 후엔 죽지 않아야 한다</b>.</li>
+<li><b>만든 모델</b>: 없음 — 코드가 만든 출력 그 자체라 모델 편향이 개입할 자리가 없다. 이 벤치에서 가장 객관적인 정답지.</li>
+<li><b>거친 과정</b>: 채점자가 별도 환경에서 직접 생성했고, 수리 전 코드가 3,000단 문서에서 실제로 죽는 것까지 먼저 재현해 정답지가 유효함을 확인했다.</li>
+<li><b>참고 — 원 세션에서는 누가 수리했나</b>: 이 수리를 실제 수행한 것은 당시 <span class="m f">fable</span> 실행이었다(모델 지정 없는 기본 디스패치). 그 산출물은 채점 기준이 아니라 참고 대조본이다 — 정답은 위의 코드 출력이 대신한다.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>같은 지시문을 opus와 sonnet에 각 2회씩, 총 4회 위임.</li>
+<li>채점은 <b>후보의 주장을 믿지 않는 독립 하네스</b>로 했다. 채점자가 별도 환경에서 수리 전 코드로 정답 출력 3종 — 특정 모델의 산출이 아니라 코드 자체가 기준이라 출처 편향이 없다 — — 공유 항목이 있는 문서, 1,800단 문서, 서식 있는 문서 — 을 만들어 두고, 후보 코드의 출력과 바이트 단위로 대조했다. 3,000단 문서에서 수리 전 코드가 실제로 크래시한다는 것도 먼저 재현해 오라클 자체의 유효성을 확인했다.</li>
+<li>여기에 기존 테스트 132개 재실행과, 모델명을 가린 블라인드 패널의 품질 심사를 더했다.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>모델</th><th style="white-space:nowrap">회차</th><th>바이트 동일 3종</th><th>3,000단 무크래시</th><th>기존 테스트</th><th>패널 지적<sup>*</sup></th><th>비용</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>✓ 전부 동일</td><td>✓</td><td>✓ +자체 11개 추가</td><td class="warn">2건</td><td>$6.67</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>✓ 전부 동일</td><td>✓</td><td>✓ +자체 2개 추가</td><td class="warn">2건</td><td>$10.86</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>✓ 전부 동일</td><td>✓</td><td>✓ +자체 9개 추가</td><td class="ok">0건</td><td>$9.45</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>✓ 전부 동일</td><td>✓</td><td>✓ +자체 3개 추가</td><td class="ok">0건</td><td>$6.70</td></tr>
+</table></div>
+<p class="note"><sup>*</sup>패널 지적의 내용이 흥미롭다 — opus의 흠 4건은 전부 코드가 아니라 <b>보고서와 산출물의 어긋남</b>이었다: 스스로 주장한 검증 도구가 커밋에 없거나, 기존 테스트 커버리지의 빈틈을 과장하거나, 새로 만든 오라클이 한 방향만 검증. 코드 자체는 4회 실행 모두 무결.</p>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>방법과 오라클이 함께 주어진 수리는 sonnet으로 충분하다.</b> 4회 실행 전부 오라클 만점이고, 패널 흠 0건은 오히려 sonnet 쪽이다.</li>
+<li><b>"바이트 하나까지 동일" 같은 어려운 제약도, 판정 수단이 함께 오면 실행의 문제가 된다.</b> 제약이 어렵다고 상위 모델이 필요한 게 아니라, 제약을 검증할 오라클이 있느냐가 관건이다.</li>
+<li><b>보고서 주장과 산출물의 대조는 이 유형에서도 유효한 게이트다.</b> "500개 무작위 케이스로 검증했다"는 주장이 커밋에 없는 사례가 실제로 나왔다 — 코드가 완벽해도 보고는 부풀 수 있다.</li>
+<li><b>금액은 대등하다</b> — 2회 합계 opus $17.53 vs sonnet $16.15. 강등의 실익은 쿼터다.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>주의</dt><dd>오라클은 <b>병합·확정된 기준에서 파생된 것</b>이어야 한다. 수리하는 쪽이 스스로 만든 테스트를 오라클로 쓰면 자기 사각을 공유한다 — <a href="#c6">⑥ 창발 구현</a>에서 이 함정이 실물로 확인됐다.</dd></dl>
+</div>
+
+<div class="card" id="c3">
+<div class="ax">C 판단·결정 · 측정: 파일럿 62</div>
+<h3>③ 계획 문서 초안 <span class="m s">sonnet</span> <span class="cond">+ 검토 강도는 파급이 정한다 — 본문 결정 절차 참조</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 산출물이 코드가 아니라 계획 문서이고, 조사와 트레이드오프 정리가 일의 본체인가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li>구조 변경·마이그레이션처럼 <b>구현 전에 단계와 리스크를 정리해야 하는 작업</b>의 계획 문서 초안.</li>
+<li>코드 수정은 금지되고, 조사한 근거와 단계 분해·완료 판정 기준·열린 결정 목록을 담은 문서 하나가 산출물.</li>
+<li><b>이름이 "초안"인 이유</b>: 이 leaf의 산출물은 언제나 확정 계획이 아니라 검토 전 초안이다. 파급이 크면 아래 기준대로 독립검토를 거쳐 확정되고, 국소적이면 초안이 그대로 채택될 수 있다 — 확정 여부는 이름이 아니라 게이트가 정한다.</li>
+
+</ul></dd>
+
+<dt>결정 절차 — 이 계획, 누가 쓰고 누가 검증하나</dt>
+<dd><ul style="margin:4px 0">
+<li><b>초안 작성 — 누가 쓰나</b>
+<ul style="margin:2px 0">
+<li>조사·정리형 — 현재 상태를 근거로 단계·리스크·완료 기준을 정리하는 계획 → <span class="m s">sonnet</span> — <b>파급이 커도 마찬가지다</b>. 근거는 실측이다: 아래 측정 태스크가 바로 파급 큰 계획이었는데 sonnet이 밀리지 않았다.</li>
+<li>설계 발명형 — 새 아키텍처·알고리즘을 고안하는 것이 본체인 계획 → <span class="m o">opus 이상</span>. 이 카드의 측정 밖이라 <a href="#c6">⑥ 창발 구현</a>의 증거를 유추한 보수적 선택이다.</li>
+</ul></li>
+<li><b>검토 — 누가 검증하나</b>
+<ul style="margin:2px 0">
+<li>파급이 국소적 — 단일 화면의 개편 순서 정리 수준 → 검토 생략 가능.</li>
+<li>파급이 큼 → <span class="m o">opus</span> 독립검토. "파급이 크다"는 다음 중 하나면 성립:
+<ul style="margin:2px 0">
+<li>많은 후속 작업이 이 계획을 딛고 서는가</li>
+<li>되돌리기 어려운 것 — 마이그레이션 등 — 을 움직이는가</li>
+<li>해석 차이가 사용자가 보는 동작을 가르는가</li>
+</ul>
+검토자 근거는 실측 1건: 이번 측정의 치명적 결함을 잡은 심사자가 opus였다. 볼 관점을 지정해 주면 <a href="#c1">①</a>의 결과대로 sonnet까지 내릴 여지.</li>
+<li>최상위 위험 — 제품 방향을 가르는 결정, 비가역 데이터 이동 → <span class="m f">fable</span> 열린 심층 검토. 미측정 — <a href="#c9">⑨</a>의 증거를 유추한 보수적 선택.</li>
+</ul></li>
+</ul>
+<p class="note" style="margin:6px 0 0">크기가 바꾸는 것은 "초안을 누가 쓰나"가 아니라 <b>"검토를 얼마나 세게 하나"</b>다 — 이것이 이 카드의 측정이 준 답이다.</p>
+</dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li><b>작업 내용</b>: MVP를 검증하는 단계라 페이지 목록과 사이드바 트리는 임시 구조 — 브라우저 저장소와 하드코딩 데이터 — 에 얹혀 있었고, 본문만 진짜 데이터베이스에 있었다. 그래서 사이드바에는 보이는 항목이 본문에는 없는 모순이 실제로 발생했다. 이 이중 구조를 단일 데이터 모델로 통일하는 마이그레이션 계획을 문서로 작성하는 작업이다.</li>
+<li><b>이 계획은 위의 "파급이 큰 계획" 기준에 해당한다</b> — 많은 후속 작업이 이 계획을 딛고 서고, 마이그레이션이 걸려 있어 잘못되면 되돌리기 어렵다.</li>
+<li><b>채점 방식이 독특하다 — hindsight 채점</b>: 이 계획은 원 프로젝트에서 실제로 구현까지 갔고 — 구현 실행은 당시 fable — 그 과정에서 밟은 함정 4개가 기록으로 남아 있다. 그 함정을 역산해 "계획이 미리 경고했는가"를 본다 — 계획의 품질을 취향이 아니라 사후에 확정된 사실로 채점하는 방식이다.</li>
+<li><b>함정 4개</b>:
+<ul style="margin:2px 0">
+<li>깊은 트리 조회에서 같은 항목을 중복으로 세는 폭발 문제</li>
+<li>페이지 이동의 예외 케이스 처리</li>
+<li>마이그레이션을 두 번 실행해도 안전한가, 실패하면 되돌릴 수 있는가</li>
+<li>데이터 구조만이 아니라 사용자가 조작할 화면까지 계획에 포함했는가</li>
+</ul></li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 계획이 예견했어야 할 함정 4개의 목록.</li>
+<li><b>만든 모델</b>: 특정 모델의 산출물이 아니다 — 이후 실제 구현(당시 <span class="m f">fable</span> 실행)과 독립 검토가 실제로 밟거나 잡아낸 사건 기록에서 역산했다.</li>
+<li><b>거친 과정</b>: 전부 커밋·검토 기록으로 확정된 사후 사실.</li>
+<li><b>비교 시 주의</b>: 원 세션의 채택 계획 문서는 독립 검토 26회를 반영한 개선본이라 <b>비교에 쓰지 않았다</b> — 검토본과 1회 실행의 직접 비교는 불공정하기 때문.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>같은 지시문을 opus와 sonnet에 각 2회씩, 총 4회 위임.</li>
+<li>채점은 함정 4개의 예견 여부를 문서 인용 근거와 함께 판정하고, 별도로 블라인드 패널이 계획 자체의 결함 — 실현 불가한 단계, 자기모순, 잘못된 귀속 — 을 찾았다.</li>
+<li>원 세션의 채택본과의 직접 비교는 하지 않았다. 채택본은 독립 검토 26회를 거친 개선본이라, 검토 없는 1회 산출과 비교하면 불공정하기 때문이다.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>모델</th><th style="white-space:nowrap">회차</th><th>함정 4개 예견</th><th>치명적 결함</th><th>패널 지적</th><th>비용</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td class="ok">4개 전부 — 유일한 만점</td><td class="ok">0</td><td>minor 2건</td><td>$3.09</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>3개 + 1개 부분</td><td class="bad">1건 — 기능을 엉뚱한 연산에 귀속(구현자가 따라가면 잘못 만들 방향 오류)</td><td>minor 2건</td><td>$3.57</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>3개 + 1개 부분</td><td class="ok">0</td><td>minor 1건</td><td>$2.72</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>3개 + 1개 부분</td><td class="ok">0</td><td>minor 2건</td><td>$4.80</td></tr>
+</table></div>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>계획 문서 초안은 sonnet으로 충분하다 — 정확히는 "sonnet이 밀리지 않는다".</b> 치명적 결함을 낸 쪽은 오히려 opus였다. 다만 실행 2회씩의 결과이므로 "sonnet이 더 안전하다"까지는 말할 수 없다.</li>
+<li><b>최고 단일 산출도 opus, 유일한 치명적 결함도 opus.</b> 같은 모델의 실행 간 편차가 모델 간 차보다 크다는 패턴이 계획에서도 반복됐다.</li>
+<li><b>계획의 안전장치는 모델 상향이 아니라 독립검토다.</b> 치명적 결함을 낸 쪽이 상위 모델이었다는 사실이 이를 뒷받침한다 — 누가 어떤 검토를 하는지는 위 결정표에.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>주의</dt><dd>계획 문서가 "무엇을 조사해서 어떻게 찾을지"의 전략서라면 이 유형이 아니다 — 전략을 미리 써서 실행자에게 주입하는 구성 자체가 <a href="#c10">⑩</a>에서 기각됐다.</dd></dl>
+</div>
+
+<div class="card" id="c4">
+<div class="ax">연구·웹검색(커버리지) · 측정: Phase 2-2 138</div>
+<h3>④ 커버리지형 조사 <span class="m s">sonnet</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 찾을 대상의 범위가 정의돼 있고 — 공식 문서, 정해진 소스 목록 — 완전하게 모아서 기준과 대조하는 것이 목표인가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li>경쟁 제품·표준·문서의 <b>전수 수집과 현행 대조</b> — "빠짐없이 모아라"가 가치의 본체인 조사.</li>
+<li>수집 결과를 우리 코드·문서와 대조해 분류표를 만드는 작업이 전형.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li><b>작업 내용</b>: 경쟁 노트 제품의 키보드 단축키를 공식 문서 한국어판·영어판과 커뮤니티 정리 글에서 전수 수집하고, 우리 앱의 코드를 직접 읽어 각 단축키를 "이미 지원 / 다른 동작과 충돌 / 미구현"으로 분류하는 호환성 매트릭스를 만드는 작업이다.</li>
+<li><b>정답지</b>: 확정 매트릭스 49항목 — 정체와 편향은 아래 "정답지의 정체"에. "최고가 47/49로 2개 모자람"은 성능 부족이 아니라 <b>1회 실행 vs 검토 반영본의 격차</b>로 읽어야 한다.</li>
+<li><b>분류가 맞는지도 별도 검증</b>: 채점 패널이 각 실행의 분류 중 최소 8개를 골라 코드를 직접 열어 재검증했다.</li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 확정 호환성 매트릭스 49항목.</li>
+<li><b>만든 모델</b>: <span class="m o">opus</span>로 시작해 도중에 <span class="m f">fable</span>로 이어진 실행이 초안을 작성.</li>
+<li><b>거친 과정</b>: 독립 검토 2회에서 발견 11건을 반영한 확정본 — 즉 <b>검토를 거친 개선본</b>.</li>
+<li><b>비교 시 주의</b>: 1회 실행과의 커버리지 비교에는 정답지 쪽에 유리한 기울기가 있다. 게다가 이번 채점에서 정답지 자체의 오류 3건이 드러났고, 후보들이 정답지에 없는 유효 항목도 찾았다 — 정답지는 절대 기준이 아니라 대조 기준.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>같은 지시문을 opus와 sonnet에 각 2회씩 위임.</li>
+<li>패널에는 "정답지도 의심하라"를 지시했다 — 실제로 정답지 자체의 오류 3건이 이 과정에서 발굴됐다(공식 단축키 누락 등). 원 세션 산출물도 무결이 아니다.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>모델</th><th style="white-space:nowrap">회차</th><th>커버리지 (49 중)</th><th>분류 재검증</th><th>치명적 결함</th><th>비용</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>44</td><td>13개 중 12개 정확</td><td class="ok">0</td><td>$4.31</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>41</td><td class="ok">12개 전부 정확</td><td class="ok">0</td><td>$3.69</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td class="ok">47 — 최고</td><td>14개 중 12개 정확</td><td class="ok">0</td><td>$3.95</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>44</td><td>15개 중 12개 정확</td><td class="ok">0</td><td>$5.21</td></tr>
+</table></div>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>커버리지형 조사는 sonnet으로 충분하다.</b> 커버리지 최고 기록이 sonnet이고, 분류 오류는 양쪽 다 전부 사소한 국소 오분류였다 — 정확도는 opus가 소폭 우위(25개 중 24 vs 29개 중 24)지만 치명적 결함은 양쪽 0.</li>
+<li><b>수집 범위가 정의되면 성실한 순회의 문제가 된다.</b> "어디를 찾을지"가 열려 있는 발굴형 조사는 전혀 다른 결과를 냈다 — <a href="#c8">⑧</a>.</li>
+<li><b>정답지도 의심하게 하라.</b> 채점 기준 자체의 오류 3건이 후보 실행들에 의해 드러났다 — 기준과 다르다고 무조건 감점하면 더 나은 답을 벌준다.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c5">
+<div class="ax">디자인 · 측정: Phase 2-2 77·114 — 사람 블라인드</div>
+<h3>⑤ 디자인 시안·HTML 제작 <span class="m s">sonnet</span> <span class="cond">+ 렌더 화면 자동 캡처 검토 명시</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 산출물이 시각 비교물 — 시안 라운드, 비교 페이지, 목업 — 이고, 최종 채택을 사람이 고르는가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li>새 화면·컴포넌트를 구현하기 전에 <b>변형 여러 종을 나란히 비교하는 시안 HTML</b>을 만들어 사람이 고르는 라운드.</li>
+<li>선택 수집 장치 — 라디오·복사 버튼 — 까지 포함한 자체완결 페이지가 산출물.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크 (2건)</dt>
+<dd><ul style="margin:4px 0">
+<li><b>태스크 A</b>: 에디터의 명령 메뉴가 "글자가 너무 커" 피드백을 받았다. 글자 크기와 밀도를 축으로 변형 4~6종을 설계해 비교 페이지로 만드는 작업.</li>
+<li><b>태스크 B</b>: 아직 만들어진 적 없는 휴지통 화면과 상단 메뉴 패널의 첫 시안 라운드 — 구조 변형 3종씩, 상태별 화면 포함.</li>
+<li><b>"원 세션 채택본"이란</b>: 원 프로젝트에서 이 시안 라운드가 실제로 실행됐을 때 산출돼, 사용자가 보고 변형을 골랐던 바로 그 비교 페이지 — 정체는 아래 "비교 기준의 정체"에. 원본은 지금도 프로젝트 저장소의 <code>design/candidates/</code>에 있어 직접 열어 대조할 수 있다.</li>
+<li><b>비교 설계</b>: 태스크마다 opus 2회·sonnet 2회에 채택본을 더해 5개를 익명으로 섞고, 어느 것이 채택본인지도 가린 채 사람이 최고와 탈락을 골랐다.</li>
+</ul></dd>
+
+<dt>비교 기준의 정체 — 시각 선호에는 정답이 없어 "정답지" 대신 채택본을 쓴다</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 원 라운드에서 사용자가 보고 변형을 골랐던 그 비교 페이지 2건.</li>
+<li><b>만든 모델</b>: 두 건 모두 당시 <span class="m o">opus</span> 실행의 산출물.</li>
+<li><b>거친 과정</b>: 산출 후 수정 없이 그대로 채택 — 저장소 이력상 도입 커밋 이후 변경 0회, 블라인드 사본과 해시 일치 확인.</li>
+<li><b>비교 시 주의</b>: 사람 선택을 한 번 통과한 판이지만, 이번 블라인드에선 1승 1탈락 — 채택 이력이 품질 보증이 아니다.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>사람 블라인드 선택이 1차 판정 — 시각 품질에는 자동 채점이 없기 때문. 채점자의 어감 기준: <b>탈락 = 채택 불가 수준의 결함, "고만고만" = 눈에 차지 않는 수준</b>.</li>
+<li>별도로 패널이 검증 가능한 항목만 심사했다: 요구된 변형 수·상태 화면·수치 주석의 정확성·다크 모드·자체완결성.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th class="nw">태스크</th><th class="nw">후보</th><th class="nw">사람 판정</th><th>사유</th></tr>
+<tr><td rowspan="5" class="nw">A 명령 메뉴</td><td class="nw"><span class="m s">sonnet</span> 2회차</td><td class="ok nw">최고</td><td class="why">—</td></tr>
+<tr><td class="nw"><span class="m o">opus</span> 1회차</td><td class="nw">좋음</td><td>"간단하면서도 들어갈 건 다 들어가 있다"</td></tr>
+<tr><td class="nw"><span class="m o">opus</span> 2회차</td><td class="nw">무난</td><td class="why">—</td></tr>
+<tr><td class="nw"><span class="m s">sonnet</span> 1회차</td><td class="bad nw">탈락</td><td>스타일 변수를 선언만 하고 연결하지 않아 패널 테두리가 안 보임 — 사람과 패널이 각자 발견</td></tr>
+<tr><td class="nw">채택본 (opus)</td><td class="bad nw">탈락</td><td>밀집 변형의 예시 문구가 필터 상태 칸에 잘못 들어감 — 실제 채택본에 실재하는 결함으로, 당시 라운드에선 변형 선택에 집중해 드러나지 않았다가 블라인드 재검에서 발견됨</td></tr>
+<tr><td rowspan="2" class="nw">B 휴지통·메뉴</td><td class="nw">채택본 (opus)</td><td class="ok nw">최고</td><td>"내보내기 아이콘의 디테일, 선택·커멘트 수집 구성, 다중선택 UI 창발"</td></tr>
+<tr><td class="nw">신규 4건 전부</td><td class="warn nw">별로</td><td>"고만고만" — 눈에 차는 것이 없었다</td></tr>
+</table></div>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>시안은 1회 생성으로 되는 일이 아니다.</b> 신규 8건 중 사람 눈높이를 만족한 것은 2~3건 — 절반 이상이 별로 이하였다. 이 유형의 올바른 운용은 후보를 여러 개 생성해 사람이 고르는 구조이고, 시안 라운드가 원래 그 구조다.</li>
+<li><b>모델 방향은 없다.</b> 최고 1회는 sonnet, 좋음 1회는 opus, 별로와 탈락엔 양쪽이 다 있다 — sonnet 강등 시 잃는 것이 관측되지 않았고, 실행 단가가 지배 요인도 아니다. 그래서 sonnet에 후보 수를 늘리는 쪽이 합리적.</li>
+<li><b>채택본이 항상 이기지도 않는다.</b> 채택본 — 당시 opus 산출 — 이 한 태스크에선 최고였지만 다른 태스크에선 채택 불가 판정을 받았고, 실전에서 아무도 못 잡았던 내용 결함까지 블라인드 재검에서 드러났다. 익명 비교는 산출물만이 아니라 과거의 선택도 검증한다.</li>
+<li><b>필수 조건: 지시문에 "렌더 화면을 자동 캡처해 스스로 검토하라"를 명시하라.</b> 화면 없는 자동 브라우저로 페이지를 열어 스크린샷을 찍는 검증인데, 스타일 선언만 하고 연결하지 않는 부류의 버그는 소스만 봐선 안 잡히고 렌더된 화면을 봐야 잡힌다 — 실제로 탈락한 실행이 이 함정을 밟았다.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c6">
+<div class="ax">A+B 부하·창발 · 측정: 파일럿 96</div>
+<h3>⑥ 창발 구현 <span class="m o">opus</span> 또는 <span class="m f">fable</span> <span class="cond">+ 병합 전 독립 적대 리뷰 의무</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 지시문이 방향과 원인 계열만 주고 "설계 세부는 네 판단"인가? 여러 서브시스템의 규칙을 동시에 지켜야 하는가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li>알고리즘·프로토콜 수준의 <b>설계 판단이 남아 있는 구현</b> — 참고 방향은 있지만 정답 설계가 없는 작업.</li>
+<li>동기화·동시성·데이터 무결성처럼 실수의 대가가 큰 영역이 전형.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li><b>작업 내용</b>: 두 사람이 같은 줄을 동시에 편집하면 한쪽의 입력이 지워지는 결함이 있었다. 원격에서 온 변경을 아직 확정되지 않은 내 편집 위에 위치를 변환해 병합하는 알고리즘을 만들어야 하는데, 지시문은 원인 계열과 방향만 주고 "설계는 현재 코드를 직접 확인한 뒤 네가 판단하라"고 했다. 재전송·재접속·서버 동기화 규칙과 충돌 없이 공존해야 한다는 제약이 겹친다.</li>
+<li><b>원 세션에서는 어땠나</b>: 이 태스크의 원 구현은 fable 실행이었다. 그 fable조차 <b>1차 구현에 치명적 결함 1건을 내장</b>했고, 병합 전 적대 리뷰가 잡아낸 뒤 수리를 거쳐서야 병합됐다 — 즉 "1회 구현을 믿을 수 없다"는 이 카드의 결론은 fable을 포함한 세 모델 공통이다.</li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 사전에 정답 목록이 없다 — 확정 결함 수가 사후에 만들어지는 정답지다.</li>
+<li><b>만든 모델</b>: 교차 심사단(<span class="m o">opus</span>·<span class="m f">fable</span> 각각)이 결함을 발견하고, 중대 주장은 별도 반증 검증을 통과한 것만 확정.</li>
+<li><b>비교 시 주의</b>: 원 세션 구현(당시 <span class="m f">fable</span>, 1차에 치명적 결함 1건 후 리뷰로 수리)은 참고용 대조본이지 채점 기준이 아니다.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>fable·opus·sonnet에 각 2회씩, 총 6회 위임. 자동 채점은 빌드와 기존 테스트 전체 재실행 — 전원 통과였다.</li>
+<li>품질층은 <b>교차 심사</b>: 같은 산출물 6개를 opus 심사단과 fable 심사단이 각각 블라인드로 심사하고, 중대 주장은 반증 검증을 통과한 것만 인정했다. 이 교차 설계가 뜻밖의 수확 — 심사단 간 격차 — 을 낳았다.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>모델</th><th style="white-space:nowrap">회차</th><th>빌드·기존 회귀</th><th>자기 테스트</th><th>확정된 병합 차단급 결함</th><th>비용</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>✓ 전부 통과</td><td>✓ 전부 통과</td><td class="ok">0 — 유일한 무결 (사소한 흠 5건)</td><td>$12.16</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td>✓ 전부 통과</td><td>✓ 전부 통과</td><td class="bad">1건 — 대기 중인 편집을 지나쳐 변환</td><td>$22.34</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>✓ 전부 통과</td><td>✓ 전부 통과</td><td class="bad">1건 — 특정 편집 순서에서 영구 불일치＋상대 편집 되살림</td><td>$17.50</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>✓ 전부 통과</td><td>✓ 전부 통과</td><td class="bad">1건 — 병합이 자료구조에만 적용되고 화면 편집기 경로는 미적용</td><td>$13.20</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>1</td><td>✓ 전부 통과</td><td>✓ 전부 통과</td><td class="ok">0 (사소한 흠 3건)</td><td>$42.65</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>2</td><td>✓ 전부 통과</td><td>✓ 전부 통과</td><td class="ok">0 — 채점 패널의 opus 심사자가 자체 무작위 재생기를 만들어 7만 가지 편집 순서를 돌렸는데도 불일치 0</td><td>$51.22</td></tr>
+</table></div>
+<p class="note"><b>검증 깊이의 비대칭 각주</b>: 심사자는 검증 도구를 스스로 만들 수 있고 어디까지 팔지는 재량이라, 모든 후보가 7만 회급 무작위 검증을 받은 것은 아니다 — 결함이 나온 세 후보는 그 결함이 재생기로 확정됐고(양성 증거), fable 두 후보는 공격적 재생에도 무결(음성 증거)이지만, opus 1회차의 무결은 같은 강도의 공격을 받은 기록이 없다. "fable 2/2 &gt; opus 1/2" 사다리를 읽을 때 이 점을 감안하라.</p>
+
+<dl class="kv"><dt>fable은 언제, 얼마나 좋았나 — 검증 국면의 실측</dt>
+<dd><ul style="margin:4px 0">
+<li>구현 국면의 fable은 위 표대로 2/2 무결이다. 그와 별개로 fable의 실력이 가장 극적으로 드러난 곳은 <b>검증 국면</b>이다.</li>
+<li>원 실험의 후보 4개를 심사한 두 심사단의 행동이 갈렸다. <b>opus 심사단</b>: 코드를 정독하고 기존 테스트를 확인하는 수준 — 확정 결함 <b>0건</b> 발견.</li>
+<li><b>fable 심사단</b>: 코드 정독에서 멈추지 않고, 두 클라이언트의 편집 순서를 무작위로 뒤섞어 재생하는 <b>검증 하네스를 즉석에서 만들어 실행</b>했다. 30,000가지 순서를 돌려 불일치 291건을 재현하고, 의심 지점 한 줄을 고치자 0건이 되는 것까지 확인해 원인을 확정했다. 이 방식으로 확정 결함 <b>3건 전부</b>를 발견.</li>
+<li>즉 fable의 우위는 "코드를 더 잘 읽는다"가 아니라 <b>"어떤 검증 수단이 필요한지 스스로 발명한다"</b>에 있었다 — <a href="#c8">⑧ 발굴</a>과 같은 기전이고, 창발 구현의 병합 게이트를 fable에 맡기는(<a href="#c9">⑨</a>) 직접 근거다.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>6회 중 3회가 자기 테스트를 전부 통과한 채 병합 차단급 결함을 내장했다.</b> 스스로 만든 테스트는 스스로의 사각을 공유한다 — 창발 구현의 완료 조건에 "자체 테스트 통과"를 쓰면 안 되는 실물 증거.</li>
+<li><b>모델 사다리가 실측됐다: fable 무결 2/2 &gt; opus 1/2 &gt; sonnet 0/2.</b> 이 벤치의 결정 규칙(치명 0)을 통과한 모델은 fable뿐이다. 단 원 세션의 fable 1차는 치명이 있었으므로(실행 6회 표본) fable도 항상 무결은 아니다 — <b>게이트 의무는 모델 불문 유지</b>.</li>
+<li><b>선택지는 둘이다</b>: 품질 최우선이면 fable + 게이트(1회 $43~51 — opus의 약 3배), 한도를 아끼려면 opus + 게이트(치명은 게이트가 잡는다는 전제). sonnet 강등은 무결 0/2라 여전히 비권장.</li>
+<li><b>가장 비싼 유형이다</b> — 1회 $12~22. 그런데도 게이트 없이는 그 돈으로 결함을 사는 셈이다.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c7">
+<div class="ax">B 창발(진단) · 측정: Phase 2-1 118</div>
+<h3>⑦ 순수 진단·수리 <span class="m o">opus</span>, 중요하면 <span class="m f">fable</span> <span class="cond">+ 동일 게이트 의무</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 버그의 원인이 확정되지 않았고 — 가설 수준 — 진단부터 수리까지 스스로 해야 하는가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li>재현은 되는데 원인이 미상인 버그의 <b>진단＋수리 통짜 위임</b>.</li>
+<li><a href="#c2">②</a>와의 경계: 수리 방법이 지시문에 있으면 ②, 없으면 여기.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li><b>작업 내용</b>: 새 페이지를 만들면 그 페이지로 이동해야 하는데 홈 화면으로 튕기는 버그가 있었다. 지시문은 "화면 갱신 타이밍이 얽힌 경합이 의심된다"는 가설만 주고, 그 가설조차 "리뷰 시점의 추정이니 코드로 재검증하라"고 못박았다.</li>
+<li><b>층위가 있는 정답지</b>: 원 세션에서 이 버그는 두 번에 걸쳐 고쳐졌다. 첫 수리 — fable 실행 — 는 문제가 난 경로 하나만 막은 수준이었고, 독립 리뷰 — opus 실행 — 가 "다른 경로로 재발한다"고 지적한 뒤에야 fable의 재수리가 어느 경로로도 재발하지 않는 봉쇄에 도달했다. 그래서 채점 척도가 3층이다:
+<ul style="margin:2px 0">
+<li>경로 수리 — 문제가 난 경로 하나만 막음. 원 세션 첫 수리 수준.</li>
+<li>제3의 유효한 원천 수리 — 정답과 다른 방법이지만 현재 도달 가능한 경로를 전부 차단.</li>
+<li>원천 봉쇄 — 어느 경로로도 재발하지 않는 구조적 수리.</li>
+</ul></li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 수리 층위 3층 척도 — 경로 수리 / 제3의 유효 수리 / 원천 봉쇄.</li>
+<li><b>만든 모델</b>: 특정 모델의 단일 산출이 아니라 원 세션의 사건 이력에서 역산 — 1차 수리는 <span class="m f">fable</span>, "다른 경로로 재발한다"는 지적은 <span class="m o">opus</span> 리뷰, 원천 봉쇄 재수리는 다시 <span class="m f">fable</span>.</li>
+<li><b>비교 시 주의</b>: 기계적 diff 대조가 아니라 "이 수리가 다른 경로까지 실제로 막는가"를 심사단이 코드 추적으로 판정 — 정답과 다른 제3의 유효 수리도 인정된다.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>fable·opus·sonnet에 각 2회씩, 총 6회 위임. opus 심사단과 fable 심사단이 각 산출물의 진단 수준 — 표면 경합까지인가, 재발 구조의 뿌리까지인가 — 과 수리 층위를 코드 추적으로 판정했다. 기계적 diff 대조가 아니라 "이 수리가 다른 경로까지 실제로 막는가"를 경로별로 확인.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>모델</th><th style="white-space:nowrap">회차</th><th>진단 (심사단 2인)</th><th>수리 층위</th><th>치명적 결함</th><th>비용</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>뿌리 · 표면</td><td>경로 수리 — 원 세션 첫 수리와 동급</td><td class="ok">0</td><td>$6.57</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td class="ok">뿌리 · 뿌리</td><td>제3의 유효 수리 — 현재 도달 가능한 경로 전부 차단</td><td class="ok">0</td><td>$11.75</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td class="ok">뿌리 · 뿌리</td><td class="ok">6회 중 최상위 동급(fable 2회차와 함께) — 심사단 한쪽은 원천 봉쇄, 다른 쪽은 제3의 유효 수리로 판정. 어느 판정으로도 <b>원 세션의 첫 수리를 능가</b></td><td class="ok">0</td><td>$2.53</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>뿌리 · 표면</td><td>경로 수리</td><td class="bad">1건 — 원 세션 설계 검토가 명시적으로 기각했던 바로 그 접근을 채택(다른 경로로 재발)</td><td>$5.70</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>1</td><td class="ok">뿌리 · 뿌리</td><td>제3의 유효 수리</td><td class="ok">0</td><td>$6.60</td></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td>2</td><td class="ok">뿌리 · 뿌리</td><td class="ok">원천 봉쇄급 — 심사단 한쪽 판정(다른 쪽은 제3의 유효). 두 경로 모두 커버를 재현으로 확인</td><td class="ok">0</td><td>$14.55</td></tr>
+</table></div>
+<p class="note">흥미로운 사실 — 신선한 1회 실행의 fable 2회가 모두, <b>원 세션에서 fable 자신이 냈던 1차 수리(경로 수리 수준)를 넘어섰다</b>. 원 세션 1차가 얕았던 것은 모델 한계라기보다 그날의 편차였을 가능성이 크다.</p>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>opus·sonnet 4회만 놓고 보면 최고도 sonnet, 유일한 치명적 결함도 sonnet.</b> 최고 실행은 원 세션의 첫 수리보다 깊이 갔고, 최악 실행은 원 세션이 기각한 접근을 밟았다 — 진단 유형에서도 편차가 모델 차를 지배한다.</li>
+<li><b>권장은 opus, 중요하면 fable이다.</b> 이 벤치의 결정 규칙 — 치명적 결함이 하나라도 나오면 강등 불가 — 을 sonnet이 통과하지 못했다. opus는 두 실행 다 무결한 중간이었고, fable은 2/2가 근본 진단＋제3의 유효 수리 이상 — 층위·무결 모두 우위였다.</li>
+<li><b>4회 전부 가설을 맹신하지 않고 실측으로 재검증했다</b> — 계측을 직접 심어 3단계 화면 전이를 관측하는 수준까지. 진단의 성실성은 모델 무관하게 높았다.</li>
+<li><b>중요한 진단이라면 "상위 모델 1회"보다 "같은 모델 2회 + 게이트 선별"이 실측상 합리적일 수 있다</b> — 편차가 크기 때문이다.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" id="c8">
+<div class="ax">연구·웹검색(발굴) · 측정: Phase 2-2 138</div>
+<h3>⑧ 발굴형 조사 <span class="m o">opus 이상</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> "공식 목록 밖의 것, 숨은 것, 아무도 정리해두지 않은 것"을 찾아내는 게 가치의 본체인가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li>공식 문서에 없는 기능·제약·우회로를 커뮤니티와 실험에서 캐내는 조사.</li>
+<li><a href="#c4">④ 커버리지형</a>과 같은 태스크 안에 섞여 있는 경우가 많다 — 지시문을 쓸 때 두 축을 구분해서 생각하라. 어느 축이 본체냐에 따라 권장 모델이 갈린다.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li>별도 실행이 아니다 — <a href="#c4">④</a>의 단축키 조사 4회 실행 <b>그대로를 다른 자로 잰 것</b>이다. 그 지시문에는 "공식 문서에 없는데 커뮤니티가 보고하는 숨은 단축키를 찾아 별도 표시하라"는 발굴 축이 명시돼 있었다.</li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 사전 정답 목록이 없다 — 각 실행이 찾아낸 숨은 단축키 중 <b>출처가 실제로 확인되는 것</b>의 개수가 사후에 점수가 된다.</li>
+<li><b>만든 모델</b>: 채점 기준 자체는 특정 모델 산출물이 아니다(사전 정답 목록 없이 발견별 출처 실물을 검증하는 사후 검증형). 단 <b>원 세션에서 이 발굴을 실제 수행한 실행은 ④와 같은 실행</b> — 당시 <span class="m o">opus</span>로 시작해 <span class="m f">fable</span>로 이어졌고, 교차 확인에 쓴 ④ 확정 매트릭스의 숨은 단축키 3건도 그 산출물(독립 검토 2회 반영)이다.</li>
+<li><b>비교 시 주의</b>: 참고로 ④의 확정 매트릭스에도 숨은 단축키 3건이 실려 있어 교차 확인에 썼다. 그리고 <b>이 유형에 fable은 실측되지 않았다</b> — fable 보완 실행은 ⑥(96)·⑦(118)에만 있었고 이 조사 태스크(138)는 opus·sonnet만 비교됐다.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>모델명을 가린 패널이 실행별 발굴 주장을 출처 실물 — 공식 발표, 커뮤니티 문서 — 로 검증해 유효 건수만 셌다.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>모델</th><th style="white-space:nowrap">회차</th><th>숨은 단축키 발견</th><th>정답지에도 없던 유효 추가 발견</th></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>1</td><td>7건</td><td>2건</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td>2</td><td class="ok">9건</td><td class="ok">5건</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>1</td><td>3건</td><td>1건</td></tr>
+<tr><td style="white-space:nowrap"><span class="m s">sonnet</span></td><td>2</td><td>2건</td><td>1건</td></tr>
+</table></div>
+<p class="note">비용은 ④와 같은 실행이므로 ④의 표를 보라. 두 실행 모두에서 벌어진, 이 벤치 전체에서 가장 뚜렷하고 일관된 모델 격차다.</p>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>지정된 곳을 파는 능력은 동률이지만, 어디를 파볼지 스스로 넓히는 능력은 상위 모델이 일관되게 우위였다.</b></li>
+<li><b>이 격차는 게이트로 보정할 수 없다.</b> 틀린 것은 리뷰가 잡아주지만, 하지 않은 발견은 리뷰가 만들어주지 못한다 — 그래서 발굴이 본체인 일은 모델을 아끼면 안 된다.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>주의</dt><dd>측정 태스크가 1종이므로 방향 신호로 읽어야 한다 — 다만 <a href="#c9">⑨</a>의 심사단 격차가 같은 기전이라 서로를 보강한다.</dd></dl>
+</div>
+
+<div class="card" id="c9">
+<div class="ax">게이트 · 측정: 96·118의 교차 심사 (자연 실험)</div>
+<h3>⑨ 적대 리뷰 게이트 <span class="m f">fable 유지</span></h3>
+<div class="qbox"><span class="q">구분 기준:</span> 다른 leaf의 산출물을 병합 전에 "결함을 찾아 막는" 역할인가 — 볼 곳이 지정되지 않은 열린 심층 리뷰인가?</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 쓰는 유형인가</dt>
+<dd><ul style="margin:4px 0">
+<li>창발 구현·진단 수리의 <b>병합 전 마지막 관문</b>. 이 문서의 모든 "sonnet 가능" 판정이 게이트의 존재를 전제하므로, 게이트 자체의 품질이 전체 체계의 바닥이다.</li>
+<li><a href="#c1">①</a>과의 경계: 체크리스트가 주어지면 ①이고 sonnet으로 충분하다. 여기는 어디를 팔지 스스로 정해야 하는 리뷰다.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li>설계된 리플레이가 아니라 <b>벤치의 심사 과정 자체가 만든 자연 실험</b>이다 — <a href="#c6">⑥</a>의 구현 산출물 4건과 <a href="#c7">⑦</a>의 진단 산출물 4건을, opus 심사단과 fable 심사단이 <b>각각 독립적으로</b> 블라인드 심사했다. 같은 대상을 두 심사단이 봤으므로 심사 능력의 직접 비교가 된다.</li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><b>무엇</b>: 사전 정답이 없다 — 두 심사단의 발견을 합쳐 반증 검증을 통과한 <b>확정 결함의 집합</b>이 사후 기준이 되고, 각 심사단이 그중 몇 개를 찾았는지가 점수다.</li>
+<li><b>만든 모델</b>: 없음 — 교차 발견 + 반증 검증으로 사후 확정.</li>
+<li><b>비교 시 주의</b>: 심사단 자신들의 발견이 기준이 되는 구조라, 두 심사단이 모두 놓친 결함은 측정 밖이다 — 격차의 하한만 잰다.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>동일 후보 4건씩을 두 심사단이 모델명을 가린 채 심사하고, 병합 차단급 주장은 별도 반증 검증을 통과한 것만 인정.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>심사단</th><th>⑥ 구현 4건에서 확정 결함</th><th>행동 양식</th><th>⑦ 진단 4건에서</th></tr>
+<tr><td style="white-space:nowrap"><span class="m f">fable</span></td><td class="ok">3건 전부 발견</td><td>검증 하네스를 즉석 발명 — 편집 순서 30,000가지 무작위 재생, 불일치 291건 재현, 한 줄 수정으로 0건 확인</td><td>일관되게 더 엄격 — 진단을 근본 수준으로 인정한 것 2/4</td></tr>
+<tr><td style="white-space:nowrap"><span class="m o">opus</span></td><td class="bad">0건</td><td>코드 정독과 기존 테스트 확인 수준</td><td>더 관대(근본 인정 4/4) — 단 ⑦의 치명적 결함을 결함 항목으로 발굴한 쪽은 opus 심사자</td></tr>
+</table></div>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>열린 심층 리뷰의 격차는 발굴의 격차다</b> — <a href="#c8">⑧</a>과 같은 기전. 어디를 의심할지, 어떤 검증 도구를 만들어 돌릴지를 스스로 정하는 능력에서 심사단이 갈렸다.</li>
+<li><b>게이트에서 아끼면 전체가 무너진다.</b> sonnet 강등 행들의 안전 근거가 전부 "게이트가 잡는다"이므로, 게이트 모델을 내리는 순간 그 전제가 사라진다.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>주의</dt><dd>구현 심사 1태스크 + 진단 심사의 방향 일치가 근거의 전부인 보수적 현상 유지다 — "opus로 내리면 안 된다"의 확정이 아니라 "내릴 근거가 없다"가 정확한 진술. 체크리스트형 리뷰(<a href="#c1">①</a>)는 반대 방향 증거.</dd></dl>
+</div>
+
+<div class="card" id="c10" style="border-color:var(--bad)">
+<div class="ax">금지 패턴 · 측정: Phase 2-2 138의 3구성 비교</div>
+<h3>⑩ 전략/실행 2단 분리 <span class="m x">금지</span></h3>
+<div class="qbox"><span class="q">구분 기준(패턴):</span> "상위 모델이 조사 전략 — 소스 목록·검색어·코드에서 훑을 파일 목록 — 만 설계하고, 하위 모델이 그 전략대로 실행"하는 2단 구성.</div>
+
+<dl class="kv" style="margin:10px 0">
+<dt>언제 이 패턴에 끌리나</dt>
+<dd><ul style="margin:4px 0">
+<li>"비싼 모델은 머리만 쓰고, 싼 모델이 손을 쓰면 되지 않나"라는 직관 — 쿼터를 아끼려는 합리적 동기에서 나온다. 그럴듯해 보이지만 실측에서 기각됐다.</li>
+</ul></dd>
+
+<dt>측정에 쓴 실제 태스크</dt>
+<dd><ul style="margin:4px 0">
+<li><a href="#c4">④</a>의 단축키 조사 태스크로 세 구성을 각 2회씩 비교했다: opus 단독, sonnet 단독, 그리고 분리 구성 — opus가 전략 문서를 쓰고 sonnet이 이어받아 실행.</li>
+</ul></dd>
+
+<dt>정답지의 정체</dt>
+<dd><ul style="margin:4px 0">
+<li><a href="#c4">④</a>와 동일 — 확정 매트릭스 49항목(검토 반영본) 대비 커버리지와, 분류의 코드 재검증, 그리고 <a href="#c8">⑧</a>의 숨은 발견 수.</li>
+</ul></dd>
+
+<dt>테스트 방식</dt>
+<dd><ul style="margin:4px 0">
+<li>단독 구성 4회는 ④·⑧과 같은 실행이고, 분리 구성 2회만 새로 돌렸다 — 전략 단계와 실행 단계의 비용을 합산해 비교.</li>
+</ul></dd>
+</dl>
+
+<div class="tblwrap"><table>
+<tr><th>구성</th><th style="white-space:nowrap">회차</th><th>커버리지 (49 중)</th><th>분류 재검증</th><th>숨은 발견</th><th>비용 (2단 합산)</th></tr>
+<tr><td class="nw">opus·sonnet 단독 (4회 범위)</td><td>—</td><td>41~47</td><td>대체로 정확</td><td>2~9건</td><td>$3.69~5.21</td></tr>
+<tr><td style="white-space:nowrap"><span class="m x">분리</span></td><td>1</td><td class="bad">32 — 전체 최악</td><td class="bad">16개 중 11개 — 전체 최악</td><td class="bad">0건</td><td>$5.32</td></tr>
+<tr><td style="white-space:nowrap"><span class="m x">분리</span></td><td>2</td><td>46</td><td>14개 중 13개</td><td class="bad">0건</td><td>$10.47</td></tr>
+</table></div>
+
+<dl class="kv"><dt>왜 실패하나</dt><dd><ul style="margin:4px 0">
+<li><b>전략 문서가 탐색의 상한이 된다.</b> 두 실행 모두 숨은 발견이 0건 — 실행자는 전략이 가리킨 곳만 팠고, 전략 밖의 뜻밖의 발견이 사라졌다.</li>
+<li><b>전략의 구멍이 그대로 결과의 구멍이 된다.</b> 최악 실행의 원인을 추적하니, 전략이 훑으라고 지정한 파일 목록에 핵심 파일 하나가 빠져 있었고 실행자는 그 파일을 끝내 열지 않았다 — 오분류 4~5건이 여기서 연쇄됐다. 단독 실행이라면 스스로 찾아 들어갔을 파일이다.</li>
+<li><b>비용도 더 비싸다.</b> 두 모델을 부르니 합산 비용이 단독보다 높다.</li>
+</ul></dd></dl>
+
+<dl class="kv"><dt>인사이트</dt><dd><ul style="margin:4px 0">
+<li><b>핵심 기전: 조사 범위는 조사 결과에 따라 동적으로 갱신되어야 하는데, 분리 구성은 그것을 막는다 — 그래서 성능이 떨어진다.</b> 위 두 실패가 전부 이 하나의 기전이다: 실행 중의 발견이 "다음엔 저기도 봐야겠다"를 만들어내야 하는데(숨은 발견), 범위가 전략 문서에 고정돼 있으면 그 갱신이 일어나지 않고(발견 0건), 전략에 빠진 곳은 영영 방문되지 않는다(핵심 파일 미방문 → 오분류 연쇄).</li>
+<li><b>대안은 잘 쓴 지시문 하나다.</b> 배경과 완료조건을 담되 "세부는 현재 상태를 직접 확인한 뒤 네 판단"을 남기는 단일 위임이, 2단 파이프라인보다 성능·비용 모두에서 나았다 — 이 문서의 모든 측정이 그 형식 위에서 이루어졌다.</li>
+</ul></dd></dl>
+</div>
+
+<div class="card" style="background:var(--soft)">
+<h3 style="margin-top:0">번외 — 메인 세션은 무슨 모델로? <span class="m f">fable 유지</span> <span class="cond">(미측정 — 인접 실측 유추)</span></h3>
+<ul style="margin:6px 0">
+<li>이 문서의 측정은 전부 leaf 층이다 — 메인 세션의 직무(분해·지시문 작성·오케스트레이션·게이트 운영)를 모델별로 직접 비교한 실험은 없다. 아래는 인접 실측으로부터의 유추다.</li>
+<li><b>메인 세션의 직무가 곧 상위 모델 격차가 실측된 능력들의 집합이다</b>: 열린 심층 심사(<a href="#c9">⑨</a> — fable 3건 vs opus 0건), 발굴(<a href="#c8">⑧</a>), 조사 범위의 동적 갱신(<a href="#c10">⑩</a>의 핵심 기전 — 메인 세션이 상시 수행하는 바로 그 판단), 체크리스트 작성(<a href="#c1">①</a>의 상류)과 파급 판정(<a href="#c3">③</a>).</li>
+<li><b>한도 구조와도 정합</b>: 한도 절약의 본체는 leaf를 fable 밖으로 내리는 것(<a href="#s2">§2</a>)이고, 그렇게 아낀 Fable 한도의 용처가 메인 세션이다. leaf를 내려놓고 메인까지 낮추면 아낀 한도를 쓸 곳이 없다.</li>
+<li><b>경고 신호</b>: "opus 메인 세션"의 가장 가까운 대리 실측이 ⑨의 opus 심사단인데, 확정 결함 4건 중 0건을 잡았다. Fable 한도가 부족하면 메인을 낮추기보다 leaf 라우팅을 더 철저히 하라.</li>
+</ul>
+</div>
+
+<h2 id="s4">4. 비용·쿼터 효율 실측</h2>
+<h3>모델 합계 (동일 태스크 16쌍)</h3>
+<div class="tblwrap"><table>
+<tr><th></th><th>총비용</th><th>평균 턴</th><th>list 단가비</th><th>실현 비용비</th></tr>
+<tr><td><span class="m o">opus</span> 16회 실행</td><td>$104.85</td><td>34턴</td><td rowspan="2" style="vertical-align:middle">1.67×</td><td rowspan="2" style="vertical-align:middle"><b>1.13×</b></td></tr>
+<tr><td><span class="m s">sonnet</span> 16회 실행</td><td>$93.01</td><td>59턴</td></tr>
+</table></div>
+<p><b>핵심: sonnet은 list 단가만큼 싸지지 않는다.</b> 같은 태스크에 턴을 평균 1.7배 쓰기 때문이다(예: 창발 구현에서 opus 82턴 vs sonnet 155턴). 달러 절감이 목적이라면 강등의 이득이 사실상 없다. <span class="small">(점추정 — 같은 모델의 실행 간 편차가 모델 간 차보다 커서 ±는 넓다. 예: 같은 태스크에서 opus r1 $12.16 / r2 $22.34.)</span></p>
+<h3>태스크별 실측 (모델 합계, 2rep)</h3>
+<div class="tblwrap"><table>
+<tr><th>태스크 (유형)</th><th>opus</th><th>sonnet</th><th>비고</th></tr>
+<tr><td>132 관점 지정 리뷰 ①</td><td>$5.23</td><td>$5.97</td><td>둘 다 최저가 유형 (1회 ~$3)</td></tr>
+<tr><td>62 계획 ③</td><td>$6.66</td><td>$7.52</td><td></td></tr>
+<tr><td>77·114 디자인 ⑤</td><td>$14.61</td><td>$15.28</td><td>1회당 $3~4</td></tr>
+<tr><td>138 조사 ④⑧</td><td>$8.00</td><td>$9.16</td><td>split은 $15.79로 최고가+최저성능</td></tr>
+<tr><td>151 방법 지정 수리 ②</td><td>$17.53</td><td>$16.15</td><td></td></tr>
+<tr><td>118 순수 진단 ⑦</td><td>$18.32</td><td>$8.23</td><td>sonnet이 절반 이하 — 단 치명적 결함 1건</td></tr>
+<tr><td>96 창발 구현 ⑥</td><td>$34.50</td><td>$30.70</td><td>최고가 유형 (1회당 $12~22)</td></tr>
+</table></div>
+<h3>fable을 leaf에 쓰는 값</h3>
+<p>fable의 실행 단가 실측: 진단 태스크 $6.60·$14.55(opus와 비슷), <b>창발 구현 태스크 $42.65·$51.22 — opus의 약 3배, sonnet의 약 3배</b>. 품질 사다리(위 ⑥⑦)와 함께 읽으면: 창발·진단 leaf에서 fable은 "비싸지만 무결율이 실측 최고"인 선택지고, 그 값을 낼지는 태스크의 파급과 한도 사정이 정한다.</p>
+<h3>쿼터(한도) 효율 — 강등의 진짜 이득</h3>
+<ul>
+<li>한도 구조: <b>Fable만 별도 모델 한도</b>, opus/sonnet은 주간·세션 공통 한도. → sonnet 이관 = Fable/Opus 한도 소모 0.</li>
+<li>원 세션 158건 디스패치 기준 sonnet 강등 가능 유형(<a href="#c1">①</a>~<a href="#c5">⑤</a>) = <b>최소 ~40%, 방법 지정 구현 포함 시 절반 안팎</b>(추정 라벨).</li>
+<li>단, 운영 함정: sub-agent <code>model:</code> 오버라이드는 <b>재개/알림 웨이크업 턴에 미상속</b> — 세션 기본 모델로 샌다(원 세션 실측: 혼재 23건 중 22건이 이 기전, 잔여 1건은 Fable 전용 한도와 정합). 재개가 잦은 장기 leaf는 라우팅 효과가 희석되므로, 모델 고정이 중요하면 headless 실행이 확실하다.</li>
+</ul>
+
+<h2 id="s5">5. 원리 5 + 운영 함정 3</h2>
+<div class="principle"><span class="t">1. 모델 선택보다 게이트가 변별을 만든다.</span><br>실제 사고 6건(창발 3건·진단 1건·계획 1건·디자인 배선 버그 1건)은 전부 모델 불문 1-pass에서 났고, 전부 독립 검증(패널·사람 블라인드)이 잡았다. "opus로 올릴까"보다 "이 산출물에 독립 리뷰가 걸려 있나"가 먼저다.</div>
+<div class="principle"><span class="t">2. 자기 테스트 그린은 아무것도 보증하지 않는다.</span><br>MAJOR를 내장한 창발 구현 3회 실행 모두 자기 테스트는 전부 통과했다. 자작 오라클은 자기 사각을 공유한다 — 창발 leaf의 완료 조건에 "자체 테스트 통과"를 쓰지 마라.</div>
+<div class="principle"><span class="t">3. 같은 모델의 실행 간 편차가 모델 간 차보다 크다.</span><br>같은 모델이 같은 태스크에서 최고와 최악을 냈고(진단·리뷰·디자인), 실전 채택됐던 원본조차 블라인드에선 1승 1탈락이었다. 중요한 leaf라면 "상위 모델 1회"보다 "같은 모델 2회 실행 + 게이트 선별"이 합리적일 수 있다.</div>
+<div class="principle"><span class="t">4. 전략은 실행 중 갱신되는 판단이다 — 쪼개지 마라.</span><br>전략 사전 주입(⑩)은 탐색의 상한이 되어 발굴을 죽였다. 대신 self-contained 지시문에 "현재 상태를 직접 확인한 뒤 세부는 네 판단"을 주는 것이 원 세션과 이 벤치 양쪽에서 검증된 형식이다.</div>
+<div class="principle"><span class="t">5. 발굴 능력만은 진짜 모델 격차다.</span><br>지정된 곳을 파는 일은 동률이지만, 어디를 파볼지 스스로 넓히는 일(숨은 단축키 발굴·fuzz 하네스 발명)은 opus·fable이 일관 우위였다. 발굴이 가치의 본체인 leaf는 아끼지 마라.</div>
+<h3>운영 함정</h3>
+<ul>
+<li><b>재개 미상속</b>: <code>model:</code> 오버라이드는 최초 spawn에만 적용 — 백그라운드 알림·SendMessage 재개 턴은 세션 모델로 샌다.</li>
+<li><b>비인터랙티브 환경 차이</b>: 채점·검증 스크립트는 node 버전 등 환경을 명시적으로 고정하라(nvm lazy-shim 때문에 같은 명령이 셸 종류에 따라 다른 버전으로 돈 실사례).</li>
+<li><b>동시 기동 경쟁 쓰기</b>: 여러 실행이 공유 파일(키·로그)에 read-modify-write하면 유실된다 — per-run 파일이 정본.</li>
+</ul>
+
+<h2 id="s6">6. 신뢰도 라벨과 출처</h2>
+<ul class="small">
+<li><b>태스크·모델당 2회 실행</b> — 모든 판정은 "치명적 결함 유무 + 큰 격차"만 신뢰하는 설계다. 미세 우열은 rep 분산에 묻힌다.</li>
+<li><b>품질 판정 주체</b> = 검증형 LLM 패널(라벨 블라인드·절대평가·MAJOR 전건 반증 검증·교차 판정) + 디자인만 사람 블라인드. LLM judge의 가족 편향은 완화됐으나 잔존 가능.</li>
+<li><b>적용 범위</b> = Fable이 프롬프트를 잘 써준 self-contained leaf. 힌트·완료조건 없는 한 줄 지시는 이 표의 보증 밖.</li>
+<li><b>미측정</b>: 장기 완주(F축 — 기존 판정을 바꾸지 못해 자연실험 대체 권장), 문서 정리(변별 약).</li>
+<li><b>정답지·채택본이란</b> — 각 유형의 채점 기준이 무엇인지 정리한다(실물 근거는 벤치마크 저장소에 있다):
+<ul style="margin:2px 0">
+<li>① 리뷰: 확정 결함 목록과 채점 규칙. 원 리뷰 전문과, 그 결함이 실재함을 증명한 원 세션 수리 커밋이 근거다.</li>
+<li>② 수리: 정답 출력 3종은 채점 시 수리 전 코드에서 생성했다. 원 수리 diff가 참고 대조본이다.</li>
+<li>③ 계획: 함정 4개의 출처는 원 세션의 구현·검토 이력이고, 채택 계획 전문이 남아 있다.</li>
+<li>④ 조사: 확정 매트릭스 전문 — 원 세션 산출 문서 그대로다.</li>
+<li>⑤ 디자인: 채택본 사본 2건 — 원본과 해시 일치를 확인했다.</li>
+<li>⑥ 구현: 확정 결함의 상세 근거는 심사 원데이터이고, 원 세션 구현 diff가 참고 대조본이다.</li>
+<li>⑦ 진단: 수리 층위 3층 정의와, 층위 기준이 된 실물 diff 2종이 근거다.</li>
+</ul></li>
+<li>근거 문서: 태스크 인벤토리 · 파일럿 16런 결과 · 품질패널·라우팅(라우팅 표 정본) · B축 118 결과 · Phase 2-2 디자인·연구 — 전부 벤치마크 저장소에 있다. 정답지·채택본·원 diff 등 실물 근거도 같은 저장소에 있다. 독립 검토 누계 10회·발견 55건 반영(22+12+9+5+7).</li>
+</ul>
+
+</div>
+
+<script>
+document.addEventListener('click', function (e) {
+  var a = e.target.closest('a[href^="#"]');
+  if (!a) return;
+  var el = document.getElementById(a.getAttribute('href').slice(1));
+  if (!el) return;
+  e.preventDefault();
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+</script>
