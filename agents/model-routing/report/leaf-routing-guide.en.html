@@ -78,7 +78,7 @@ td.why{min-width:280px}
 <div class="wrap">
 
 <h1>Leaf Routing Guide — Which Work Goes to Which Model</h1>
-<p class="lede">Results from replaying the 8 sub-agent task types from a real project (the burst2 note app) exactly as-is, comparing fable, opus, and sonnet under identical conditions, and cross-checking against the original session's deliverables. This conclusion went through 38 runs, three-layer grading (automated oracle → verifying LLM panel → human blind), and 10 rounds of independent review.</p>
+<p class="lede">Results from replaying the 8 sub-agent task types from a real note-app project exactly as-is, comparing fable, opus, and sonnet under identical conditions, and cross-checking against the original session's deliverables. This conclusion went through 38 runs, three-layer grading (automated oracle → verifying LLM panel → human blind), and 10 rounds of independent review.</p>
 <div class="meta">
   <span class="chip">2026-07-10 ~ 07-12</span><span class="chip">38 runs · $328.67</span>
   <span class="chip">8 tasks · selected from an inventory of 158</span><span class="chip">all 6 critical defects caught by the gate</span>
@@ -755,11 +755,11 @@ The reviewer basis is one measurement: the adjudicator that caught this measurem
 <li><b>Unmeasured</b>: long-run completion (the F axis — could not change existing verdicts, natural-experiment substitute recommended), document tidying (weak discrimination).</li>
 <li><b>Physical location of answer keys / adopted versions</b> — The answer keys, adopted baselines, and original diffs referenced here live in the benchmark repository. What each anchor is:
 <ul style="margin:2px 0">
-<li>① Review: the confirmed defect list and grading rules. The full original review is the anchor final message, and the proof of reality is the burst2 repair commit.</li>
+<li>① Review: the confirmed defect list and grading rules. The full original review is the anchor final message, and the proof of reality is the repair commit in the project repo.</li>
 <li>② Repair: the 3 answer outputs were generated at grading time from the pre-fix code. The original repair is the anchor fix diff.</li>
-<li>③ Plan: the source of the 4 traps is burst2's implementation and review history, and the full adopted plan is the anchor plan document.</li>
-<li>④ Research: the full confirmed matrix — the burst2 document as-is.</li>
-<li>⑤ Design: copies of the adopted versions — hash-matched with the burst2 originals.</li>
+<li>③ Plan: the source of the 4 traps is the project's implementation and review history, and the full adopted plan is the anchor plan document.</li>
+<li>④ Research: the full confirmed matrix — the project document as-is.</li>
+<li>⑤ Design: copies of the adopted versions — hash-matched with the originals in the repo.</li>
 <li>⑥ Implementation: detailed evidence of the confirmed defects is the raw adjudication data, and the original session implementation is the anchor fix diff.</li>
 <li>⑦ Diagnosis: the layer definitions, and the 2 layer-standard actual diffs (the L2 repair and the L3 source-containment).</li>
 </ul></li>
