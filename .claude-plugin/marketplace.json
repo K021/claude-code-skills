@@ -1,10 +1,10 @@
 {
-  "name": "claude-code-skills",
+  "name": "agent-harness",
   "owner": {
     "name": "Jooeon Kim"
   },
   "metadata": {
-    "description": "A collection of Claude Code skills by Jooeon Kim (K021). Sibling skills that let a fresh session recover what you're doing and what files exist."
+    "description": "A Claude Code harness by Jooeon Kim (K021) — skills (and, over time, agents) to customize how the coding agent works. Ships two sibling skills that let a fresh session recover what you're doing and what files exist."
   },
   "plugins": [
     {

@@ -1,6 +1,6 @@
-# claude-code-skills
+# agent-harness
 
-A collection of [Claude Code](https://claude.com/claude-code) skills I build and use. Each skill lives in `skills/<name>/` and maps 1:1 to its install target, `~/.claude/skills/<name>/`.
+My **[Claude Code](https://claude.com/claude-code) harness** — the skills (and, over time, agents) I build and use to customize how the coding agent works. Skills live in `skills/<name>/` and map 1:1 to their install target, `~/.claude/skills/<name>/`; agents will live under `agents/<name>/`.
 
 ## Skills
 
@@ -11,7 +11,11 @@ A collection of [Claude Code](https://claude.com/claude-code) skills I build and
 
 **The two are designed as a pair.** On recovery, `project-context` answers *"where am I and what did we decide"* while `project-structure` answers *"what files are here and what does each do"* — together they let a fresh session pick up where the last one left off instead of re-deriving everything.
 
-*(More skills will be added here over time.)*
+*(More skills — and agents under `agents/` — will be added here over time.)*
+
+## Agents
+
+*(None yet — shareable subagent definitions will live under `agents/<name>/`.)*
 
 ## Install
 
@@ -20,12 +24,12 @@ This repo is a **Claude Code plugin marketplace** — install natively, no npm o
 **Recommended — plugin marketplace (inside Claude Code):**
 
 ```text
-/plugin marketplace add K021/claude-code-skills
-/plugin install project-context@claude-code-skills
-/plugin install project-structure@claude-code-skills
+/plugin marketplace add K021/agent-harness
+/plugin install project-context@agent-harness
+/plugin install project-structure@agent-harness
 ```
 
-That's it — everything happens inside Claude Code. Update later with `/plugin marketplace update claude-code-skills`.
+That's it — everything happens inside Claude Code. Update later with `/plugin marketplace update agent-harness`.
 
 > **What makes recovery automatic.** Each skill ships a **`SessionStart` hook** that injects your project's saved context/file-map into every new, resumed, or post-compaction session — that hook is the real trigger (a `CLAUDE.md` instruction alone is only a soft nudge). Then run a **one-time per-project init** — ask Claude Code to *"introduce the project-context / project-structure system"* — to create the files the hook reads. So: install = skill + hook active; init = the per-project files exist. See each skill's **"How activation works"** section.
 >
@@ -34,8 +38,8 @@ That's it — everything happens inside Claude Code. Update later with `/plugin 
 **Or — no marketplace, just copy the folder (works in any agent harness):**
 
 ```bash
-git clone https://github.com/K021/claude-code-skills.git
-cp -r claude-code-skills/skills/project-context ~/.claude/skills/project-context
+git clone https://github.com/K021/agent-harness.git
+cp -r agent-harness/skills/project-context ~/.claude/skills/project-context
 ```
 
 Then invoke it (e.g. ask Claude Code to *"introduce the project-context system"*). See each skill's own `README.md` for details.

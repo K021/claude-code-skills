@@ -2,7 +2,7 @@
 
 > Stop letting your AI agent re-discover your files by grep every session. Give it a **file map** it recovers in one read.
 >
-> Part of the [**claude-code-skills**](../../README.md) collection. The sibling of [**project-context**](../project-context/).
+> Part of the [**agent-harness**](../../README.md) collection. The sibling of [**project-context**](../project-context/).
 
 ---
 
@@ -45,15 +45,15 @@ Noise (`.git`, `node_modules`, `dist`/`build`, `.venv`, caches, lockfiles, `.DS_
 This is a Claude Code **skill**, shipped as a plugin. Install it natively — no npm required:
 
 ```text
-/plugin marketplace add K021/claude-code-skills
-/plugin install project-structure@claude-code-skills
+/plugin marketplace add K021/agent-harness
+/plugin install project-structure@agent-harness
 ```
 
 Or copy the folder directly (no marketplace, works in any harness):
 
 ```bash
-git clone https://github.com/K021/claude-code-skills.git
-cp -r claude-code-skills/skills/project-structure ~/.claude/skills/project-structure
+git clone https://github.com/K021/agent-harness.git
+cp -r agent-harness/skills/project-structure ~/.claude/skills/project-structure
 ```
 
 Then in any project, ask Claude Code to *"introduce the project-structure system"*. It will:

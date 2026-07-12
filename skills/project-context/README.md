@@ -2,7 +2,7 @@
 
 > Give your AI coding agent a **memory** — so it stops getting dumber every time the session resets.
 >
-> Part of the [**claude-code-skills**](../../README.md) collection.
+> Part of the [**agent-harness**](../../README.md) collection.
 
 A tiny context-memory system for [Claude Code](https://claude.com/claude-code) (and adaptable to other AI coding agents). It keeps a self-maintaining **hot index** of your project so a fresh session — or one that just compacted its context window — recovers "what we're building · where we are · the next step" in seconds, instead of re-deriving it and quietly producing worse work.
 
@@ -36,15 +36,15 @@ A single JSON file — `meta/structures/project-context.json` — holds a one-li
 This is a Claude Code **skill**, shipped as a plugin. Install it natively — no npm required:
 
 ```text
-/plugin marketplace add K021/claude-code-skills
-/plugin install project-context@claude-code-skills
+/plugin marketplace add K021/agent-harness
+/plugin install project-context@agent-harness
 ```
 
 Or copy the folder directly (no marketplace, works in any harness):
 
 ```bash
-git clone https://github.com/K021/claude-code-skills.git
-cp -r claude-code-skills/skills/project-context ~/.claude/skills/project-context
+git clone https://github.com/K021/agent-harness.git
+cp -r agent-harness/skills/project-context ~/.claude/skills/project-context
 ```
 
 > **Sibling skill:** [`project-structure`](../project-structure/) maintains a *file map* (what files exist and what each does) — the structural counterpart to this skill's *work state*. They're designed to be used together.
